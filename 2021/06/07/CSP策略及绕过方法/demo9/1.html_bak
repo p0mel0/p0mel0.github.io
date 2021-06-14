@@ -1,3 +1,0 @@
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'nonce-test' ">
-<base href="//10.146.110.37/">
-<script nonce='test' src="1.js"></script>			

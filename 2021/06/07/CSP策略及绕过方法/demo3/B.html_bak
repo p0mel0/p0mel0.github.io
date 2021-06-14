@@ -1,8 +1,0 @@
-<body>
-<script>
-var iframe = document.createElement('iframe');
-iframe.src="http://localhost/CSP/demo3/A.html";
-document.body.appendChild(iframe);
-setTimeout(()=>alert(iframe.contentWindow.document.getElementById('flag').innerHTML),1000);//setTimeout是为了等待iframe加载完成
-</script>
-</body>
