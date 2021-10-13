@@ -9,7 +9,7 @@
     
     <title>
         
-            PHP的PCRE库的回溯问题 |
+            PHP的PCRE库回溯问题 |
         
         p0melo
     </title>
@@ -46,313 +46,74 @@
     <div class="page-main-content">
 
         <div class="page-main-content-top">
-            $logo-title-font-size = 2rem;
-$pc-search-icon-font-size = 1.5rem;
-$menu-bar-line-height = 2.5px;
-$logo-image-box-width = 46px;
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                p0melo
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
 
-.header-wrapper {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--background-color);
-  padding-top: $scroll-progress-bar-height;
-
-  hover-style(false, 0, 0);
-
-  .header-content {
-    position: relative;
-    height: 100%;
-    width: $main-content-width;
-    max-width: $content-max-width;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    z-index: $z-index-5;
-
-
-    &.has-first-screen {
-      max-width: $content-max-width * 1.2;
-    }
-
-    +keep-tablet() {
-      width: $main-content-width-tablet;
-    }
-
-    +keep-mobile() {
-      width: $main-content-width-mobile;
-    }
-
-    .left {
-      display: flex;
-      align-items: center;
-      transition-t("transform", "0", "0.2", "linear");
-
-      .header-shrink & {
-        transform: scale(0.72);
-        transform-origin: left;
-      }
-
-
-      if (hexo-config('base_info.logo_img') && hexo-config('base_info.logo_img') != '') {
-        .logo-image {
-          width: $logo-image-box-width;
-          height: $logo-image-box-width;
-          margin-right: 8px;
-
-
-          +keep-tablet() {
-            width: $logo-image-box-width * 0.9;
-            height: $logo-image-box-width * 0.9;
-          }
-
-          +keep-mobile() {
-            width: $logo-image-box-width * 0.8;
-            height: $logo-image-box-width * 0.8;
-          }
-
-          img {
-            border-radius: 6px;
-            width: 100%;
-          }
-        }
-
-      }
-
-      .logo-title {
-        font-size: $logo-title-font-size;
-        font-weight: bold;
-        letter-spacing: 1px;
-        line-height: 1;
-        color: var(--first-text-color);
-
-        +keep-tablet() {
-          font-size: $logo-title-font-size * 0.9;
-        }
-
-        +keep-mobile() {
-          font-size: $logo-title-font-size * 0.8;
-        }
-      }
-
-    }
-
-
-    .right {
-
-      .pc {
-
-        .menu-list {
-          display: flex;
-          align-items: center;
-
-          +keep-tablet() {
-            display: none;
-          }
-
-
-          .menu-item {
-            float: left;
-            position: relative;
-            margin-left: 30px;
-            font-size: 1rem;
-            cursor: pointer;
-            color: var(--default-text-color);
-
-            &:first-child {
-              margin-left: 0;
-            }
-
-
-            a:hover, .active {
-
-              &::after {
-                content: '';
-                position: absolute;
-                bottom: -10px;
-                left: 50%;
-                width: 100%;
-                height: 2px;
-                transform: translateX(-50%);
-                background: var(--primary-color);
-                transition-t("transform, bottom", "0, 0", "0.2, 0.2", "linear, linear");
-
-                .header-shrink & {
-                  bottom: -($header-shrink-height / 2 - 12);
-                }
-              }
-            }
-
-            &.search {
-              font-size: $pc-search-icon-font-size;
-              margin-left: 26px;
-
-              i {
-                color: var(--default-text-color);
-              }
-
-            }
-          }
-
-
-        }
-
-      }
-
-
-      .mobile {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .icon-item {
-          display: none;
-          position: relative;
-          cursor: pointer;
-          font-size: 18px;
-          margin-left: 12px;
-          width: 20px;
-          height: 20px;
-          color: var(--default-text-color);
-
-          i {
-            color: var(--default-text-color);
-          }
-
-          &:first-child {
-            margin-left: 0;
-          }
-
-          +keep-tablet() {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-        }
-
-        .menu-bar {
-
-          .menu-bar-middle {
-            width: 18px;
-            height: $menu-bar-line-height;
-            position: relative;
-            background: var(--default-text-color);
-
-            .header-drawer-show & {
-              background: transparent;
-            }
-
-
-            &::before, &::after {
-              content: '';
-              position: absolute;
-              left: 0;
-              width: 100%;
-              height: $menu-bar-line-height;
-              background: var(--default-text-color);
-              transition-t("transform", "0", "0.38", "ease");
-            }
-
-
-            &::before {
-              top: -6px;
-
-              .header-drawer-show & {
-                transform: translateY(6px) rotate(45deg);
-              }
-            }
-
-
-            &::after {
-              bottom: -6px;
-
-              .header-drawer-show & {
-                transform: translateY(-6px) rotate(-45deg);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  .header-drawer {
-    width: 100%;
-    padding: $header-height 0 20px 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: scaleY(0);
-    transform-origin: top;
-    z-index: $z-index-2;
-    background: var(--background-color);
-    transition-t("transform", "0", "0.38", "ease");
-
-    .header-drawer-show & {
-      transform: scaleY(1);
-    }
-
-    .drawer-menu-list {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-
-      .drawer-menu-item {
-        font-size: 1rem;
-        margin: 6px 0;
-        height: 38px;
-
-        a {
-          padding: 6px 20px;
-          border-radius: 20px;
-          color: var(--default-text-color);
-
-          &:hover {
-            color: var(--second-text-color);
-            border: 1px solid var(--default-text-color);
-          }
-
-
-          &.active {
-            border: 1px solid var(--default-text-color);
-            color: var(--second-text-color);
-          }
-        }
-
-
-      }
-    }
-  }
-
-
-  .window-mask {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: $z-index-1;
-    visibility: hidden;
-    opacity: 0;
-    transition-t("transform, opacity", "0, 0", "0.38, 0.38", "ease, ease");
-
-    .header-drawer-show & {
-      visibility: visible;
-      opacity: 1;
-    }
-  }
-
-}
-
-.header-drawer-show {
-  overflow: hidden;
-}
 
         </div>
 
@@ -365,7 +126,7 @@ $logo-image-box-width = 46px;
     <div class="article-content-container">
 
         <div class="article-title">
-            <span class="title-hover-animation">PHP的PCRE库的回溯问题</span>
+            <span class="title-hover-animation">PHP的PCRE库回溯问题</span>
         </div>
 
         
@@ -400,15 +161,20 @@ $logo-image-box-width = 46px;
         
 
         <div class="article-content markdown-body">
-            <p>最近发现对PCRE的贪婪回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+            <p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
 <h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
 <p>DFA与NFA机制上的不同带来3种主要影响：</p>
-<p>NFA是用正则表达式去匹配字符串，如果匹配到就停止返回， DFA是用字符串去匹配正则表达式，例如用正则表达式：nfa|nfa not 来匹配字符串 nfa not, NFA是先拿着正则表达式nfa去匹配字符串nfa not，正则表达式nfa匹配到了字符串nfa not前面的nfa匹配成功则返回nfa，如果匹配不到再拿着后面整体去匹配，在DFA中是拿着nfa not字符串整体去匹配表达式naf|nfa not，匹配到后面的nfa not。</p>
+<ol>
+<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
+<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
+<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
+</ol>
+<p><strong>针对第2点，这里举个例子来说明：</strong></p>
 <p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
-<p>php的pcre库是NFA引擎，匹配结果是aaa。</p>
+<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
-<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到匹配中的是aaabbb。</p>
+<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
 
 <p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
@@ -418,7 +184,7 @@ $logo-image-box-width = 46px;
 <p>　　　　　*：任意多个</p>
 <p>　　　　　+：一个到多个</p>
 <p>　　　　　？：0或一个</p>
-<p>由于贪婪模式只适用于正则表达式主导的匹配模式，所以通常贪婪模式指的是NFA引擎，这里我们举个表达式<code>/.*a/</code>匹配<code>aaabbb</code>例子，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   target="_blank" rel="noopener" href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果时aaa。</p>
+<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   target="_blank" rel="noopener" href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果时aaa。</p>
 <img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
 
 <p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
