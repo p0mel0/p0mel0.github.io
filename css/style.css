@@ -1025,7 +1025,7 @@ pre .javascript .function {
   position: relative;
   box-sizing: border-box;
   width: 80%;
-  max-width: 920px;
+  max-width: 950px;
   height: 100%;
 }
 @media (max-width: 780px) {
@@ -1045,8 +1045,8 @@ pre .javascript .function {
   position: fixed;
   top: 0;
   bottom: 0;
-  left: -260px;
-  width: 260px;
+  left: -300px;
+  width: 300px;
   height: 100%;
   z-index: 1006;
   overflow-y: auto;
@@ -1443,7 +1443,7 @@ pre .javascript .function {
   position: relative;
   height: 100%;
   width: 80%;
-  max-width: 920px;
+  max-width: 950px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1451,7 +1451,7 @@ pre .javascript .function {
   z-index: 1005;
 }
 .header-wrapper .header-content.has-first-screen {
-  max-width: 1104px;
+  max-width: 1140px;
 }
 @media (max-width: 780px) {
   .header-wrapper .header-content {
@@ -1909,7 +1909,7 @@ pre .javascript .function {
   box-sizing: border-box;
   width: 100%;
   overflow: hidden;
-  background: url("/images/bg.svg") center center/cover no-repeat;
+  background: url("/images/pexels-snapwire-32237.jpg") center center/cover no-repeat;
   background-position-y: 70px;
 }
 @media (max-width: 780px) {

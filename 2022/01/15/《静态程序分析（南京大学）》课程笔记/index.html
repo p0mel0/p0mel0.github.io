@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="p0melo">
+    
+    <title>
+        
+            《静态程序分析（南京大学）》课程笔记 |
+        
+        p0melo
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/p0melo.svg">
+    
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/pexels-snapwire-32237.jpg","description":"Stay Hungry Stay Foolish."},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+  </script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+.progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: $z-index-9;
+
+  if (hexo-config('pjax.enable') == true) {
+
+    .pjax-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--pjax-progress-bar-color);
+      visibility: hidden;
+      opacity: 0;
+      z-index: $z-index-8;
+      transition-t("width", "0", "0.1", "linear");
+
+
+      &.show {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+
+    .pjax-progress-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: $z-index-8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 6px 0 0;
+      visibility: hidden;
+      font-size: 1.1rem;
+      color: var(--default-text-color);
+
+      +keep-tablet() {
+        padding: 6px 5px 0 0;
+        font-size: 1rem;
+      }
+
+      &.show {
+        visibility: visible;
+      }
+    }
+
+  }
+
+  if (hexo-config('style.scroll.progress_bar.enable') == true) {
+
+    .scroll-progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: $scroll-progress-bar-height;
+      visibility: hidden;
+      z-index: $z-index-7;
+      background: var(--primary-color);
+      transition-t("width", "0", "0.1", "linear");
+
+      &.hide {
+        display: none !important;
+      }
+    }
+
+  }
+}
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                p0melo
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="article-content-container">
+
+        <div class="article-title">
+            <span class="title-hover-animation">《静态程序分析（南京大学）》课程笔记</span>
+        </div>
+
+        
+            <div class="article-header">
+                <div class="avatar">
+                    <img src="/images/p0melo.svg">
+                </div>
+                <div class="info">
+                    <div class="author">
+                        <span class="name">p0melo</span>
+                        
+                            <span class="author-label">Lv1</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fas fa-edit"></i>&nbsp;2022-01-15 21:32:13
+    </span>
+    
+    
+
+    
+    
+    
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        <div class="article-content markdown-body">
+            <p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
+<h2 id="1-Intermediate-Representation-IR-（第二节课）"><a href="#1-Intermediate-Representation-IR-（第二节课）" class="headerlink" title="1. Intermediate Representation(IR)（第二节课）"></a>1. Intermediate Representation(IR)（第二节课）</h2><h3 id="1-1-AST-VS-IR"><a href="#1-1-AST-VS-IR" class="headerlink" title="1.1 AST VS IR"></a>1.1 AST VS IR</h3><p>编译器运行流程</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185425580.png" class="" title="image-20220103185425580">
+
+<p>程序到静态分析的流程理解：<strong>程序-&gt;IR(3addr 3地址码)-&gt;CFG-&gt;静态分析</strong></p>
+<p>AST与IR的区别</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185553431.png" class="" title="image-20220103185553431">
+
+<h3 id="1-2-What-IR-Soot’s-IR-Jimple"><a href="#1-2-What-IR-Soot’s-IR-Jimple" class="headerlink" title="1.2 What IR(Soot’s IR:Jimple)"></a>1.2 What IR(Soot’s IR:Jimple)</h3><p><strong>demo1:do while loop</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185733224.png" class="" title="image-20220103185733224">
+<p><strong>demo2:method call</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185756327.png" class="" title="image-20220103185756327">
+<p><strong>demo3:class</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185813310.png" class="" title="image-20220103185813310">
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185825140.png" class="" title="image-20220103185825140">
+
+<h3 id="1-3-Control-Flow-Graph-CFG"><a href="#1-3-Control-Flow-Graph-CFG" class="headerlink" title="1.3 Control Flow Graph(CFG)"></a>1.3 Control Flow Graph(CFG)</h3><h4 id="1-3-1-graph-nodes-basi，c-blocks-BB"><a href="#1-3-1-graph-nodes-basi，c-blocks-BB" class="headerlink" title="1.3.1 graph nodes : basi，c blocks(BB)"></a>1.3.1 graph nodes : basi，c blocks(BB)</h4><h5 id="Basic-Blocks定义"><a href="#Basic-Blocks定义" class="headerlink" title="Basic Blocks定义"></a><strong>Basic Blocks定义</strong></h5><p>入口和出口都是唯一的最大3地址码顺序集合</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103190319354.png" class="" title="image-20220103190319354">
+
+<h5 id="⭐️判别Basic-Blocks方法"><a href="#⭐️判别Basic-Blocks方法" class="headerlink" title="⭐️判别Basic Blocks方法"></a>⭐️<strong>判别Basic Blocks方法</strong></h5><p><strong>step1 ：先找到所有BB的入口(leaders)，可通过下面3中方法判定</strong></p>
+<ul>
+<li><strong>程序中的第一条指令</strong></li>
+<li><strong>任何被jump (goto) 到的目标都为leader</strong></li>
+<li><strong>任何紧跟jump语句后的语句都为leader</strong></li>
+</ul>
+<p><strong>step2：一个leader和后面的所有指令，直到下一个leader为止</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103193220938.png" class="" title="image-20220103193220938">
+
+
+
+<h5 id="例子：3AC转换BBs"><a href="#例子：3AC转换BBs" class="headerlink" title="例子：3AC转换BBs"></a><strong>例子：3AC转换BBs</strong></h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103195204869.png" class="" title="image-20220103195204869">
+
+<h4 id="1-3-2-Graph-edge"><a href="#1-3-2-Graph-edge" class="headerlink" title="1.3.2 Graph edge"></a>1.3.2 Graph edge</h4><h5 id="⭐️如何给BBs加边"><a href="#⭐️如何给BBs加边" class="headerlink" title="⭐️如何给BBs加边"></a>⭐️如何给BBs加边</h5><p><strong>1.不管有无条件的jump，起点与目标的连线</strong></p>
+<p><strong>2.正常的无条件指令，按执行顺序依次连线</strong></p>
+<p><strong>3.第1条的连线用jump指令所在的BB连线代替，如下图A与B</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103200344933.png" class="" title="image-20220103200344933">
+
+<h5 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103201711683.png" class="" title="image-20220103201711683">
+
+<h2 id="2-Data-Flow-Analysis-Applications-（第三、四节课）"><a href="#2-Data-Flow-Analysis-Applications-（第三、四节课）" class="headerlink" title="2.  Data Flow Analysis - Applications （第三、四节课）"></a>2.  Data Flow Analysis - Applications （第三、四节课）</h2><p>下面介绍3钟不同的数据流分析算法，通过算法可以解出CFG可流通的路径，算法不同，路径结果也不同</p>
+<h3 id="2-1-前置知识"><a href="#2-1-前置知识" class="headerlink" title="2.1 前置知识"></a>2.1 前置知识</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183449579.png" class="" title="image-20220103183449579">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183816522.png" class="" title="image-20220103183816522">
+
+
+
+<h3 id="2-2-Reaching-Definitions-Analysis"><a href="#2-2-Reaching-Definitions-Analysis" class="headerlink" title="2.2 Reaching Definitions Analysis"></a>2.2 Reaching Definitions Analysis</h3><h4 id="Reaching-Definitions-定义解析"><a href="#Reaching-Definitions-定义解析" class="headerlink" title="Reaching Definitions 定义解析"></a>Reaching Definitions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103114709803.png" class="" title="image-20220103114709803">
+
+<h4 id="⭐️Reaching-Definitions-实现算法"><a href="#⭐️Reaching-Definitions-实现算法" class="headerlink" title="⭐️Reaching Definitions 实现算法"></a>⭐️Reaching Definitions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115143201.png" class="" title="image-20220103115143201">
+
+<h4 id="Reaching-Definitions-实例演示"><a href="#Reaching-Definitions-实例演示" class="headerlink" title="Reaching Definitions 实例演示"></a>Reaching Definitions 实例演示</h4><p>每一个变量赋值表达式子用都代表一个Definition，这里用Dn表示，蓝色代表变量x，红色代表y，黑色代表m，绿色代表z</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115459081.png" class="" title="image-20220103115459081">
+
+<h3 id="2-3-Live-Variables-Analysis-（第四节课）"><a href="#2-3-Live-Variables-Analysis-（第四节课）" class="headerlink" title="2.3 Live Variables Analysis （第四节课）"></a>2.3 Live Variables Analysis （第四节课）</h3><h4 id="Live-Variables-定义解析"><a href="#Live-Variables-定义解析" class="headerlink" title="Live Variables 定义解析"></a>Live Variables 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103123845303.png" class="" title="image-20220103123845303">
+
+<h4 id="⭐️Live-Variables-实现算法"><a href="#⭐️Live-Variables-实现算法" class="headerlink" title="⭐️Live Variables 实现算法"></a>⭐️Live Variables 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103163513747.png" class="" title="image-20220103163513747">
+
+<h4 id="Live-Variables-实例演示"><a href="#Live-Variables-实例演示" class="headerlink" title="Live Variables 实例演示"></a>Live Variables 实例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103174745109.png" class="" title="image-20220103174745109">
+
+<h3 id="2-4-Available-Expressions-Analysis"><a href="#2-4-Available-Expressions-Analysis" class="headerlink" title="2.4 Available Expressions Analysis"></a>2.4 Available Expressions Analysis</h3><h4 id="Available-Expressions-定义解析"><a href="#Available-Expressions-定义解析" class="headerlink" title="Available Expressions 定义解析"></a>Available Expressions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180809651.png" class="" title="image-20220103180809651">
+
+<h4 id="⭐️Available-Expressions-实现算法"><a href="#⭐️Available-Expressions-实现算法" class="headerlink" title="⭐️Available Expressions 实现算法"></a>⭐️Available Expressions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180018797.png" class="" title="image-20220103180018797">
+
+<h4 id="Available-Expressions-示例演示"><a href="#Available-Expressions-示例演示" class="headerlink" title="Available Expressions 示例演示"></a>Available Expressions 示例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180716543.png" class="" title="image-20220103180716543">
+
+<h3 id="⭐️2-5-三种数据流分析应用对比"><a href="#⭐️2-5-三种数据流分析应用对比" class="headerlink" title="⭐️2.5 三种数据流分析应用对比"></a>⭐️2.5 三种数据流分析应用对比</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103181138043.png" class="" title="image-20220103181138043">
+
+<h2 id="3-Data-Flow-Analysis-Foundations-（第五、六节课）"><a href="#3-Data-Flow-Analysis-Foundations-（第五、六节课）" class="headerlink" title="3. Data Flow Analysis - Foundations （第五、六节课）"></a>3. Data Flow Analysis - Foundations （第五、六节课）</h2><h3 id="⭐️3-1-Iterative-Algorithm-Another-View"><a href="#⭐️3-1-Iterative-Algorithm-Another-View" class="headerlink" title="⭐️3.1 Iterative Algorithm, Another View"></a>⭐️3.1 Iterative Algorithm, Another View</h3><p>前面3中数据流分析算法满足<strong>不动点定律</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109104249059.png" class="" title="image-20220109104249059">
+
+<h3 id="3-2-Partial-Order"><a href="#3-2-Partial-Order" class="headerlink" title="3.2 Partial Order"></a>3.2 Partial Order</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135207135.png" class="" title="image-20220109135207135">
+
+<h3 id="3-3-Upper-and-Lower-Bounds"><a href="#3-3-Upper-and-Lower-Bounds" class="headerlink" title="3.3 Upper and Lower Bounds"></a>3.3 Upper and Lower Bounds</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135035140.png" class="" title="image-20220109135035140">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109140408193.png" class="" title="image-20220109140408193">
+
+<h3 id="⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><a href="#⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice" class="headerlink" title="⭐️3.4 Lattice, Semilattice, Complete and Product Lattice"></a>⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</h3><ul>
+<li><strong>Lattice(格)：poset中的任意2个元素，都存在最小上界和最大下界</strong></li>
+<li><strong>Semilattice(半格)：poset中的任意2个元素，只有上界或只有下界</strong></li>
+<li><strong>Complete Lattice(完全格)：一个Lattice的任意子集都存在最小上界和最大下界，则称为Complete Lattice</strong><ul>
+<li>其实finite的lattice一定是Complete Lattice（反过来不一定）</li>
+</ul>
+</li>
+<li><strong>Product Lattice：可理解为多个Lattice的笛卡尔积</strong><ul>
+<li>Product Lattice也是一个Lattice</li>
+<li>构成Product Lattice的每一个Lattice都是Complete的，那么这个Product Lattice也是Complete</li>
+</ul>
+</li>
+</ul>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135417528.png" class="" title="image-20220109135417528">
+
+<p>.<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109143223130.png" class="" title="image-20220109143223130"></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109142123333.png" class="" title="image-20220109142123333">
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   target="_blank" rel="noopener" href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
+
+        </div>
+
+        
+
+        
+            <div class="article-nav">
+                
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">SSRF绕过姿势汇总</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+        
+            <div class="comment-container">
+                <div class="comments-container">
+    <div id="comment-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments">&nbsp;Comments</i>
+    </div>
+    
+
+        
+            
+    <div class="valine-container">
+        <script 
+                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script >
+            function loadValine() {
+                new Valine({
+                    el: '#vcomments',
+                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+                    meta: ['nick', 'mail', 'link'],
+                    avatar: 'wavatar',
+                    enableQQ: true,
+                    placeholder: '欢迎吐槽~',
+                    lang: 'en'.toLowerCase()
+                });
+
+                function getAuthor(language) {
+                    switch (language) {
+                        case 'en':
+                            return 'Author';
+                        case 'zh-CN':
+                            return '博主';
+                        default:
+                            return 'Master';
+                    }
+                }
+
+                // Add "Author" identify
+                const getValineDomTimer = setInterval(() => {
+                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+                    if (vcards.length > 0) {
+                        let author = 'p0melo';
+
+                        if (author) {
+                            for (let vcard of vcards) {
+                                const vnick_dom = vcard.querySelector('.vhead .vnick');
+                                const vnick = vnick_dom.innerHTML;
+                                if (vnick === author) {
+                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                                }
+                            }
+                        }
+                        clearInterval(getValineDomTimer);
+                    } else {
+                        clearInterval(getValineDomTimer);
+                    }
+                }, 2000);
+            }
+
+            if ('false') {
+                const loadValineTimeout = setTimeout(() => {
+                    loadValine();
+                    clearTimeout(loadValineTimeout);
+                }, 1000);
+            } else {
+                window.addEventListener('DOMContentLoaded', loadValine);
+            }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            <footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+            2022&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+        </div>
+        
+		<!--
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+        </div>
+		-->
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item page-aside-toggle">
+                <i class="fas fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-expand-width flex-center">
+            <i class="fas fa-arrows-alt-h"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    
+        <aside class="page-aside">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Intermediate-Representation-IR-%EF%BC%88%E7%AC%AC%E4%BA%8C%E8%8A%82%E8%AF%BE%EF%BC%89"><span class="nav-text">1. Intermediate Representation(IR)（第二节课）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-AST-VS-IR"><span class="nav-text">1.1 AST VS IR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-What-IR-Soot%E2%80%99s-IR-Jimple"><span class="nav-text">1.2 What IR(Soot’s IR:Jimple)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-Control-Flow-Graph-CFG"><span class="nav-text">1.3 Control Flow Graph(CFG)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-1-graph-nodes-basi%EF%BC%8Cc-blocks-BB"><span class="nav-text">1.3.1 graph nodes : basi，c blocks(BB)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Basic-Blocks%E5%AE%9A%E4%B9%89"><span class="nav-text">Basic Blocks定义</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%AD%90%EF%B8%8F%E5%88%A4%E5%88%ABBasic-Blocks%E6%96%B9%E6%B3%95"><span class="nav-text">⭐️判别Basic Blocks方法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90%EF%BC%9A3AC%E8%BD%AC%E6%8D%A2BBs"><span class="nav-text">例子：3AC转换BBs</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-2-Graph-edge"><span class="nav-text">1.3.2 Graph edge</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%AD%90%EF%B8%8F%E5%A6%82%E4%BD%95%E7%BB%99BBs%E5%8A%A0%E8%BE%B9"><span class="nav-text">⭐️如何给BBs加边</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Data-Flow-Analysis-Applications-%EF%BC%88%E7%AC%AC%E4%B8%89%E3%80%81%E5%9B%9B%E8%8A%82%E8%AF%BE%EF%BC%89"><span class="nav-text">2.  Data Flow Analysis - Applications （第三、四节课）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="nav-text">2.1 前置知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Reaching-Definitions-Analysis"><span class="nav-text">2.2 Reaching Definitions Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reaching-Definitions-%E5%AE%9A%E4%B9%89%E8%A7%A3%E6%9E%90"><span class="nav-text">Reaching Definitions 定义解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%AD%90%EF%B8%8FReaching-Definitions-%E5%AE%9E%E7%8E%B0%E7%AE%97%E6%B3%95"><span class="nav-text">⭐️Reaching Definitions 实现算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Reaching-Definitions-%E5%AE%9E%E4%BE%8B%E6%BC%94%E7%A4%BA"><span class="nav-text">Reaching Definitions 实例演示</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-Live-Variables-Analysis-%EF%BC%88%E7%AC%AC%E5%9B%9B%E8%8A%82%E8%AF%BE%EF%BC%89"><span class="nav-text">2.3 Live Variables Analysis （第四节课）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Live-Variables-%E5%AE%9A%E4%B9%89%E8%A7%A3%E6%9E%90"><span class="nav-text">Live Variables 定义解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%AD%90%EF%B8%8FLive-Variables-%E5%AE%9E%E7%8E%B0%E7%AE%97%E6%B3%95"><span class="nav-text">⭐️Live Variables 实现算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Live-Variables-%E5%AE%9E%E4%BE%8B%E6%BC%94%E7%A4%BA"><span class="nav-text">Live Variables 实例演示</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-Available-Expressions-Analysis"><span class="nav-text">2.4 Available Expressions Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Available-Expressions-%E5%AE%9A%E4%B9%89%E8%A7%A3%E6%9E%90"><span class="nav-text">Available Expressions 定义解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%AD%90%EF%B8%8FAvailable-Expressions-%E5%AE%9E%E7%8E%B0%E7%AE%97%E6%B3%95"><span class="nav-text">⭐️Available Expressions 实现算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Available-Expressions-%E7%A4%BA%E4%BE%8B%E6%BC%94%E7%A4%BA"><span class="nav-text">Available Expressions 示例演示</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%AD%90%EF%B8%8F2-5-%E4%B8%89%E7%A7%8D%E6%95%B0%E6%8D%AE%E6%B5%81%E5%88%86%E6%9E%90%E5%BA%94%E7%94%A8%E5%AF%B9%E6%AF%94"><span class="nav-text">⭐️2.5 三种数据流分析应用对比</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Data-Flow-Analysis-Foundations-%EF%BC%88%E7%AC%AC%E4%BA%94%E3%80%81%E5%85%AD%E8%8A%82%E8%AF%BE%EF%BC%89"><span class="nav-text">3. Data Flow Analysis - Foundations （第五、六节课）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%AD%90%EF%B8%8F3-1-Iterative-Algorithm-Another-View"><span class="nav-text">⭐️3.1 Iterative Algorithm, Another View</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Partial-Order"><span class="nav-text">3.2 Partial Order</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Upper-and-Lower-Bounds"><span class="nav-text">3.3 Upper and Lower Bounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%AD%90%EF%B8%8F3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><span class="nav-text">⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
+    </div>
+</div>
+        </aside>
+    
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+    
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+<div class="post-scripts">
+    
+        
+<script src="/js/left-side-toggle.js"></script>
+
+<script src="/js/libs/anime.min.js"></script>
+
+<script src="/js/toc.js"></script>
+
+    
+</div>
+
+
+
+</body>
+</html>
