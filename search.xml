@@ -450,6 +450,107 @@
 ]]></content>
   </entry>
   <entry>
+    <title>《静态程序分析（南京大学）》课程笔记</title>
+    <url>/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
+<h2 id="1-Intermediate-Representation-IR-（第二节课）"><a href="#1-Intermediate-Representation-IR-（第二节课）" class="headerlink" title="1. Intermediate Representation(IR)（第二节课）"></a>1. Intermediate Representation(IR)（第二节课）</h2><h3 id="1-1-AST-VS-IR"><a href="#1-1-AST-VS-IR" class="headerlink" title="1.1 AST VS IR"></a>1.1 AST VS IR</h3><p>编译器运行流程</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185425580.png" class="" title="image-20220103185425580">
+
+<p>程序到静态分析的流程理解：<strong>程序-&gt;IR(3addr 3地址码)-&gt;CFG-&gt;静态分析</strong></p>
+<p>AST与IR的区别</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185553431.png" class="" title="image-20220103185553431">
+
+<h3 id="1-2-What-IR-Soot’s-IR-Jimple"><a href="#1-2-What-IR-Soot’s-IR-Jimple" class="headerlink" title="1.2 What IR(Soot’s IR:Jimple)"></a>1.2 What IR(Soot’s IR:Jimple)</h3><p><strong>demo1:do while loop</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185733224.png" class="" title="image-20220103185733224">
+<p><strong>demo2:method call</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185756327.png" class="" title="image-20220103185756327">
+<p><strong>demo3:class</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185813310.png" class="" title="image-20220103185813310">
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185825140.png" class="" title="image-20220103185825140">
+
+<h3 id="1-3-Control-Flow-Graph-CFG"><a href="#1-3-Control-Flow-Graph-CFG" class="headerlink" title="1.3 Control Flow Graph(CFG)"></a>1.3 Control Flow Graph(CFG)</h3><h4 id="1-3-1-graph-nodes-basi，c-blocks-BB"><a href="#1-3-1-graph-nodes-basi，c-blocks-BB" class="headerlink" title="1.3.1 graph nodes : basi，c blocks(BB)"></a>1.3.1 graph nodes : basi，c blocks(BB)</h4><h5 id="Basic-Blocks定义"><a href="#Basic-Blocks定义" class="headerlink" title="Basic Blocks定义"></a><strong>Basic Blocks定义</strong></h5><p>入口和出口都是唯一的最大3地址码顺序集合</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103190319354.png" class="" title="image-20220103190319354">
+
+<h5 id="⭐️判别Basic-Blocks方法"><a href="#⭐️判别Basic-Blocks方法" class="headerlink" title="⭐️判别Basic Blocks方法"></a>⭐️<strong>判别Basic Blocks方法</strong></h5><p><strong>step1 ：先找到所有BB的入口(leaders)，可通过下面3中方法判定</strong></p>
+<ul>
+<li><strong>程序中的第一条指令</strong></li>
+<li><strong>任何被jump (goto) 到的目标都为leader</strong></li>
+<li><strong>任何紧跟jump语句后的语句都为leader</strong></li>
+</ul>
+<p><strong>step2：一个leader和后面的所有指令，直到下一个leader为止</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103193220938.png" class="" title="image-20220103193220938">
+
+
+
+<h5 id="例子：3AC转换BBs"><a href="#例子：3AC转换BBs" class="headerlink" title="例子：3AC转换BBs"></a><strong>例子：3AC转换BBs</strong></h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103195204869.png" class="" title="image-20220103195204869">
+
+<h4 id="1-3-2-Graph-edge"><a href="#1-3-2-Graph-edge" class="headerlink" title="1.3.2 Graph edge"></a>1.3.2 Graph edge</h4><h5 id="⭐️如何给BBs加边"><a href="#⭐️如何给BBs加边" class="headerlink" title="⭐️如何给BBs加边"></a>⭐️如何给BBs加边</h5><p><strong>1.不管有无条件的jump，起点与目标的连线</strong></p>
+<p><strong>2.正常的无条件指令，按执行顺序依次连线</strong></p>
+<p><strong>3.第1条的连线用jump指令所在的BB连线代替，如下图A与B</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103200344933.png" class="" title="image-20220103200344933">
+
+<h5 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103201711683.png" class="" title="image-20220103201711683">
+
+<h2 id="2-Data-Flow-Analysis-Applications-（第三、四节课）"><a href="#2-Data-Flow-Analysis-Applications-（第三、四节课）" class="headerlink" title="2.  Data Flow Analysis - Applications （第三、四节课）"></a>2.  Data Flow Analysis - Applications （第三、四节课）</h2><p>下面介绍3钟不同的数据流分析算法，通过算法可以解出CFG可流通的路径，算法不同，路径结果也不同</p>
+<h3 id="2-1-前置知识"><a href="#2-1-前置知识" class="headerlink" title="2.1 前置知识"></a>2.1 前置知识</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183449579.png" class="" title="image-20220103183449579">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183816522.png" class="" title="image-20220103183816522">
+
+
+
+<h3 id="2-2-Reaching-Definitions-Analysis"><a href="#2-2-Reaching-Definitions-Analysis" class="headerlink" title="2.2 Reaching Definitions Analysis"></a>2.2 Reaching Definitions Analysis</h3><h4 id="Reaching-Definitions-定义解析"><a href="#Reaching-Definitions-定义解析" class="headerlink" title="Reaching Definitions 定义解析"></a>Reaching Definitions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103114709803.png" class="" title="image-20220103114709803">
+
+<h4 id="⭐️Reaching-Definitions-实现算法"><a href="#⭐️Reaching-Definitions-实现算法" class="headerlink" title="⭐️Reaching Definitions 实现算法"></a>⭐️Reaching Definitions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115143201.png" class="" title="image-20220103115143201">
+
+<h4 id="Reaching-Definitions-实例演示"><a href="#Reaching-Definitions-实例演示" class="headerlink" title="Reaching Definitions 实例演示"></a>Reaching Definitions 实例演示</h4><p>每一个变量赋值表达式子用都代表一个Definition，这里用Dn表示，蓝色代表变量x，红色代表y，黑色代表m，绿色代表z</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115459081.png" class="" title="image-20220103115459081">
+
+<h3 id="2-3-Live-Variables-Analysis-（第四节课）"><a href="#2-3-Live-Variables-Analysis-（第四节课）" class="headerlink" title="2.3 Live Variables Analysis （第四节课）"></a>2.3 Live Variables Analysis （第四节课）</h3><h4 id="Live-Variables-定义解析"><a href="#Live-Variables-定义解析" class="headerlink" title="Live Variables 定义解析"></a>Live Variables 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103123845303.png" class="" title="image-20220103123845303">
+
+<h4 id="⭐️Live-Variables-实现算法"><a href="#⭐️Live-Variables-实现算法" class="headerlink" title="⭐️Live Variables 实现算法"></a>⭐️Live Variables 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103163513747.png" class="" title="image-20220103163513747">
+
+<h4 id="Live-Variables-实例演示"><a href="#Live-Variables-实例演示" class="headerlink" title="Live Variables 实例演示"></a>Live Variables 实例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103174745109.png" class="" title="image-20220103174745109">
+
+<h3 id="2-4-Available-Expressions-Analysis"><a href="#2-4-Available-Expressions-Analysis" class="headerlink" title="2.4 Available Expressions Analysis"></a>2.4 Available Expressions Analysis</h3><h4 id="Available-Expressions-定义解析"><a href="#Available-Expressions-定义解析" class="headerlink" title="Available Expressions 定义解析"></a>Available Expressions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180809651.png" class="" title="image-20220103180809651">
+
+<h4 id="⭐️Available-Expressions-实现算法"><a href="#⭐️Available-Expressions-实现算法" class="headerlink" title="⭐️Available Expressions 实现算法"></a>⭐️Available Expressions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180018797.png" class="" title="image-20220103180018797">
+
+<h4 id="Available-Expressions-示例演示"><a href="#Available-Expressions-示例演示" class="headerlink" title="Available Expressions 示例演示"></a>Available Expressions 示例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180716543.png" class="" title="image-20220103180716543">
+
+<h3 id="⭐️2-5-三种数据流分析应用对比"><a href="#⭐️2-5-三种数据流分析应用对比" class="headerlink" title="⭐️2.5 三种数据流分析应用对比"></a>⭐️2.5 三种数据流分析应用对比</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103181138043.png" class="" title="image-20220103181138043">
+
+<h2 id="3-Data-Flow-Analysis-Foundations-（第五、六节课）"><a href="#3-Data-Flow-Analysis-Foundations-（第五、六节课）" class="headerlink" title="3. Data Flow Analysis - Foundations （第五、六节课）"></a>3. Data Flow Analysis - Foundations （第五、六节课）</h2><h3 id="⭐️3-1-Iterative-Algorithm-Another-View"><a href="#⭐️3-1-Iterative-Algorithm-Another-View" class="headerlink" title="⭐️3.1 Iterative Algorithm, Another View"></a>⭐️3.1 Iterative Algorithm, Another View</h3><p>前面3中数据流分析算法满足<strong>不动点定律</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109104249059.png" class="" title="image-20220109104249059">
+
+<h3 id="3-2-Partial-Order"><a href="#3-2-Partial-Order" class="headerlink" title="3.2 Partial Order"></a>3.2 Partial Order</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135207135.png" class="" title="image-20220109135207135">
+
+<h3 id="3-3-Upper-and-Lower-Bounds"><a href="#3-3-Upper-and-Lower-Bounds" class="headerlink" title="3.3 Upper and Lower Bounds"></a>3.3 Upper and Lower Bounds</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135035140.png" class="" title="image-20220109135035140">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109140408193.png" class="" title="image-20220109140408193">
+
+<h3 id="⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><a href="#⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice" class="headerlink" title="⭐️3.4 Lattice, Semilattice, Complete and Product Lattice"></a>⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</h3><ul>
+<li><strong>Lattice(格)：poset中的任意2个元素，都存在最小上界和最大下界</strong></li>
+<li><strong>Semilattice(半格)：poset中的任意2个元素，只有上界或只有下界</strong></li>
+<li><strong>Complete Lattice(完全格)：一个Lattice的任意子集都存在最小上界和最大下界，则称为Complete Lattice</strong><ul>
+<li>其实finite的lattice一定是Complete Lattice（反过来不一定）</li>
+</ul>
+</li>
+<li><strong>Product Lattice：可理解为多个Lattice的笛卡尔积</strong><ul>
+<li>Product Lattice也是一个Lattice</li>
+<li>构成Product Lattice的每一个Lattice都是Complete的，那么这个Product Lattice也是Complete</li>
+</ul>
+</li>
+</ul>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135417528.png" class="" title="image-20220109135417528">
+
+<p>.<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109143223130.png" class="" title="image-20220109143223130"></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109142123333.png" class="" title="image-20220109142123333">
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>手动搭建nginx+php-fpm+mysql环境--信安之路实验</title>
     <url>/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/</url>
     <content><![CDATA[<h2 id="0x01-关键过程"><a href="#0x01-关键过程" class="headerlink" title="0x01 关键过程"></a>0x01 关键过程</h2><h3 id="1-安装nigix"><a href="#1-安装nigix" class="headerlink" title="1.安装nigix"></a>1.安装nigix</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get install nginx	#安装nginx</span><br><span class="line">service nginx start		#启动nginx</span><br></pre></td></tr></table></figure>
@@ -570,107 +671,6 @@
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://www.cnblogs.com/sijidou/p/10522972.html" >udf提权<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://blog.csdn.net/weixin_39872872/article/details/112589789" >写入mysql_通过MySQL写入webshell的几种方式<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://www.cnblogs.com/milantgh/p/5444398.html" >mysql dumpfile与outfile函数的区别<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>《静态程序分析（南京大学）》课程笔记</title>
-    <url>/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
-<h2 id="1-Intermediate-Representation-IR-（第二节课）"><a href="#1-Intermediate-Representation-IR-（第二节课）" class="headerlink" title="1. Intermediate Representation(IR)（第二节课）"></a>1. Intermediate Representation(IR)（第二节课）</h2><h3 id="1-1-AST-VS-IR"><a href="#1-1-AST-VS-IR" class="headerlink" title="1.1 AST VS IR"></a>1.1 AST VS IR</h3><p>编译器运行流程</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185425580.png" class="" title="image-20220103185425580">
-
-<p>程序到静态分析的流程理解：<strong>程序-&gt;IR(3addr 3地址码)-&gt;CFG-&gt;静态分析</strong></p>
-<p>AST与IR的区别</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185553431.png" class="" title="image-20220103185553431">
-
-<h3 id="1-2-What-IR-Soot’s-IR-Jimple"><a href="#1-2-What-IR-Soot’s-IR-Jimple" class="headerlink" title="1.2 What IR(Soot’s IR:Jimple)"></a>1.2 What IR(Soot’s IR:Jimple)</h3><p><strong>demo1:do while loop</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185733224.png" class="" title="image-20220103185733224">
-<p><strong>demo2:method call</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185756327.png" class="" title="image-20220103185756327">
-<p><strong>demo3:class</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185813310.png" class="" title="image-20220103185813310">
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185825140.png" class="" title="image-20220103185825140">
-
-<h3 id="1-3-Control-Flow-Graph-CFG"><a href="#1-3-Control-Flow-Graph-CFG" class="headerlink" title="1.3 Control Flow Graph(CFG)"></a>1.3 Control Flow Graph(CFG)</h3><h4 id="1-3-1-graph-nodes-basi，c-blocks-BB"><a href="#1-3-1-graph-nodes-basi，c-blocks-BB" class="headerlink" title="1.3.1 graph nodes : basi，c blocks(BB)"></a>1.3.1 graph nodes : basi，c blocks(BB)</h4><h5 id="Basic-Blocks定义"><a href="#Basic-Blocks定义" class="headerlink" title="Basic Blocks定义"></a><strong>Basic Blocks定义</strong></h5><p>入口和出口都是唯一的最大3地址码顺序集合</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103190319354.png" class="" title="image-20220103190319354">
-
-<h5 id="⭐️判别Basic-Blocks方法"><a href="#⭐️判别Basic-Blocks方法" class="headerlink" title="⭐️判别Basic Blocks方法"></a>⭐️<strong>判别Basic Blocks方法</strong></h5><p><strong>step1 ：先找到所有BB的入口(leaders)，可通过下面3中方法判定</strong></p>
-<ul>
-<li><strong>程序中的第一条指令</strong></li>
-<li><strong>任何被jump (goto) 到的目标都为leader</strong></li>
-<li><strong>任何紧跟jump语句后的语句都为leader</strong></li>
-</ul>
-<p><strong>step2：一个leader和后面的所有指令，直到下一个leader为止</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103193220938.png" class="" title="image-20220103193220938">
-
-
-
-<h5 id="例子：3AC转换BBs"><a href="#例子：3AC转换BBs" class="headerlink" title="例子：3AC转换BBs"></a><strong>例子：3AC转换BBs</strong></h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103195204869.png" class="" title="image-20220103195204869">
-
-<h4 id="1-3-2-Graph-edge"><a href="#1-3-2-Graph-edge" class="headerlink" title="1.3.2 Graph edge"></a>1.3.2 Graph edge</h4><h5 id="⭐️如何给BBs加边"><a href="#⭐️如何给BBs加边" class="headerlink" title="⭐️如何给BBs加边"></a>⭐️如何给BBs加边</h5><p><strong>1.不管有无条件的jump，起点与目标的连线</strong></p>
-<p><strong>2.正常的无条件指令，按执行顺序依次连线</strong></p>
-<p><strong>3.第1条的连线用jump指令所在的BB连线代替，如下图A与B</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103200344933.png" class="" title="image-20220103200344933">
-
-<h5 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103201711683.png" class="" title="image-20220103201711683">
-
-<h2 id="2-Data-Flow-Analysis-Applications-（第三、四节课）"><a href="#2-Data-Flow-Analysis-Applications-（第三、四节课）" class="headerlink" title="2.  Data Flow Analysis - Applications （第三、四节课）"></a>2.  Data Flow Analysis - Applications （第三、四节课）</h2><p>下面介绍3钟不同的数据流分析算法，通过算法可以解出CFG可流通的路径，算法不同，路径结果也不同</p>
-<h3 id="2-1-前置知识"><a href="#2-1-前置知识" class="headerlink" title="2.1 前置知识"></a>2.1 前置知识</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183449579.png" class="" title="image-20220103183449579">
-
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183816522.png" class="" title="image-20220103183816522">
-
-
-
-<h3 id="2-2-Reaching-Definitions-Analysis"><a href="#2-2-Reaching-Definitions-Analysis" class="headerlink" title="2.2 Reaching Definitions Analysis"></a>2.2 Reaching Definitions Analysis</h3><h4 id="Reaching-Definitions-定义解析"><a href="#Reaching-Definitions-定义解析" class="headerlink" title="Reaching Definitions 定义解析"></a>Reaching Definitions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103114709803.png" class="" title="image-20220103114709803">
-
-<h4 id="⭐️Reaching-Definitions-实现算法"><a href="#⭐️Reaching-Definitions-实现算法" class="headerlink" title="⭐️Reaching Definitions 实现算法"></a>⭐️Reaching Definitions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115143201.png" class="" title="image-20220103115143201">
-
-<h4 id="Reaching-Definitions-实例演示"><a href="#Reaching-Definitions-实例演示" class="headerlink" title="Reaching Definitions 实例演示"></a>Reaching Definitions 实例演示</h4><p>每一个变量赋值表达式子用都代表一个Definition，这里用Dn表示，蓝色代表变量x，红色代表y，黑色代表m，绿色代表z</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115459081.png" class="" title="image-20220103115459081">
-
-<h3 id="2-3-Live-Variables-Analysis-（第四节课）"><a href="#2-3-Live-Variables-Analysis-（第四节课）" class="headerlink" title="2.3 Live Variables Analysis （第四节课）"></a>2.3 Live Variables Analysis （第四节课）</h3><h4 id="Live-Variables-定义解析"><a href="#Live-Variables-定义解析" class="headerlink" title="Live Variables 定义解析"></a>Live Variables 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103123845303.png" class="" title="image-20220103123845303">
-
-<h4 id="⭐️Live-Variables-实现算法"><a href="#⭐️Live-Variables-实现算法" class="headerlink" title="⭐️Live Variables 实现算法"></a>⭐️Live Variables 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103163513747.png" class="" title="image-20220103163513747">
-
-<h4 id="Live-Variables-实例演示"><a href="#Live-Variables-实例演示" class="headerlink" title="Live Variables 实例演示"></a>Live Variables 实例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103174745109.png" class="" title="image-20220103174745109">
-
-<h3 id="2-4-Available-Expressions-Analysis"><a href="#2-4-Available-Expressions-Analysis" class="headerlink" title="2.4 Available Expressions Analysis"></a>2.4 Available Expressions Analysis</h3><h4 id="Available-Expressions-定义解析"><a href="#Available-Expressions-定义解析" class="headerlink" title="Available Expressions 定义解析"></a>Available Expressions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180809651.png" class="" title="image-20220103180809651">
-
-<h4 id="⭐️Available-Expressions-实现算法"><a href="#⭐️Available-Expressions-实现算法" class="headerlink" title="⭐️Available Expressions 实现算法"></a>⭐️Available Expressions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180018797.png" class="" title="image-20220103180018797">
-
-<h4 id="Available-Expressions-示例演示"><a href="#Available-Expressions-示例演示" class="headerlink" title="Available Expressions 示例演示"></a>Available Expressions 示例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180716543.png" class="" title="image-20220103180716543">
-
-<h3 id="⭐️2-5-三种数据流分析应用对比"><a href="#⭐️2-5-三种数据流分析应用对比" class="headerlink" title="⭐️2.5 三种数据流分析应用对比"></a>⭐️2.5 三种数据流分析应用对比</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103181138043.png" class="" title="image-20220103181138043">
-
-<h2 id="3-Data-Flow-Analysis-Foundations-（第五、六节课）"><a href="#3-Data-Flow-Analysis-Foundations-（第五、六节课）" class="headerlink" title="3. Data Flow Analysis - Foundations （第五、六节课）"></a>3. Data Flow Analysis - Foundations （第五、六节课）</h2><h3 id="⭐️3-1-Iterative-Algorithm-Another-View"><a href="#⭐️3-1-Iterative-Algorithm-Another-View" class="headerlink" title="⭐️3.1 Iterative Algorithm, Another View"></a>⭐️3.1 Iterative Algorithm, Another View</h3><p>前面3中数据流分析算法满足<strong>不动点定律</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109104249059.png" class="" title="image-20220109104249059">
-
-<h3 id="3-2-Partial-Order"><a href="#3-2-Partial-Order" class="headerlink" title="3.2 Partial Order"></a>3.2 Partial Order</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135207135.png" class="" title="image-20220109135207135">
-
-<h3 id="3-3-Upper-and-Lower-Bounds"><a href="#3-3-Upper-and-Lower-Bounds" class="headerlink" title="3.3 Upper and Lower Bounds"></a>3.3 Upper and Lower Bounds</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135035140.png" class="" title="image-20220109135035140">
-
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109140408193.png" class="" title="image-20220109140408193">
-
-<h3 id="⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><a href="#⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice" class="headerlink" title="⭐️3.4 Lattice, Semilattice, Complete and Product Lattice"></a>⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</h3><ul>
-<li><strong>Lattice(格)：poset中的任意2个元素，都存在最小上界和最大下界</strong></li>
-<li><strong>Semilattice(半格)：poset中的任意2个元素，只有上界或只有下界</strong></li>
-<li><strong>Complete Lattice(完全格)：一个Lattice的任意子集都存在最小上界和最大下界，则称为Complete Lattice</strong><ul>
-<li>其实finite的lattice一定是Complete Lattice（反过来不一定）</li>
-</ul>
-</li>
-<li><strong>Product Lattice：可理解为多个Lattice的笛卡尔积</strong><ul>
-<li>Product Lattice也是一个Lattice</li>
-<li>构成Product Lattice的每一个Lattice都是Complete的，那么这个Product Lattice也是Complete</li>
-</ul>
-</li>
-</ul>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135417528.png" class="" title="image-20220109135417528">
-
-<p>.<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109143223130.png" class="" title="image-20220109143223130"></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109142123333.png" class="" title="image-20220109142123333">
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
 </search>
