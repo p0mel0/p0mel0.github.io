@@ -178,6 +178,73 @@
 ]]></content>
   </entry>
   <entry>
+    <title>PHP的PCRE库回溯问题</title>
+    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
+<p>DFA与NFA机制上的不同带来3种主要影响：</p>
+<ol>
+<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
+<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
+<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
+</ol>
+<p><strong>针对第2点，这里举个例子来说明：</strong></p>
+<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
+<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
+<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
+<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
+<p>　　量词：{m,n}：m到n个</p>
+<p>　　　　　*：任意多个</p>
+<p>　　　　　+：一个到多个</p>
+<p>　　　　　？：0或一个</p>
+<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
+
+<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
+
+<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
+
+<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
+
+<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
+
+<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
+<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当回溯次数大于1000000会有什么问题呢？</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
+
+<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
+<p><strong>修复方法</strong></p>
+<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>SSRF绕过姿势汇总</title>
     <url>/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/</url>
     <content><![CDATA[<h2 id="1-符号绕过"><a href="#1-符号绕过" class="headerlink" title="1. @符号绕过"></a>1. @符号绕过</h2><p><code>http://www.baidu.com@10.10.10.10</code>与<code>http://10.10.10.10</code>请求是相同的</p>
@@ -244,73 +311,6 @@
 <p><strong>参考链接</strong></p>
 <p><a class="link"   href="https://mp.weixin.qq.com/s/VvXCTNZhfknKNlcUdMzGBA" >SSRF防御与绕过<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/" >关于DNS重绑定总结<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>PHP的PCRE库回溯问题</title>
-    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
-<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
-<p>DFA与NFA机制上的不同带来3种主要影响：</p>
-<ol>
-<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
-<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
-<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
-</ol>
-<p><strong>针对第2点，这里举个例子来说明：</strong></p>
-<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
-<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
-
-<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
-<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
-<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
-<p>　　量词：{m,n}：m到n个</p>
-<p>　　　　　*：任意多个</p>
-<p>　　　　　+：一个到多个</p>
-<p>　　　　　？：0或一个</p>
-<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
-
-<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
-
-<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
-
-<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
-
-<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
-
-<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
-<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>当回溯次数大于1000000会有什么问题呢？</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
-
-<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
-
-<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
-<p><strong>修复方法</strong></p>
-<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
@@ -400,107 +400,6 @@
 
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123221821111.png" class="" title="image-20220123221821111">
 
-]]></content>
-  </entry>
-  <entry>
-    <title>《静态程序分析（南京大学）》课程笔记</title>
-    <url>/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
-    <content><![CDATA[<p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
-<h2 id="1-Intermediate-Representation-IR-（第二节课）"><a href="#1-Intermediate-Representation-IR-（第二节课）" class="headerlink" title="1. Intermediate Representation(IR)（第二节课）"></a>1. Intermediate Representation(IR)（第二节课）</h2><h3 id="1-1-AST-VS-IR"><a href="#1-1-AST-VS-IR" class="headerlink" title="1.1 AST VS IR"></a>1.1 AST VS IR</h3><p>编译器运行流程</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185425580.png" class="" title="image-20220103185425580">
-
-<p>程序到静态分析的流程理解：<strong>程序-&gt;IR(3addr 3地址码)-&gt;CFG-&gt;静态分析</strong></p>
-<p>AST与IR的区别</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185553431.png" class="" title="image-20220103185553431">
-
-<h3 id="1-2-What-IR-Soot’s-IR-Jimple"><a href="#1-2-What-IR-Soot’s-IR-Jimple" class="headerlink" title="1.2 What IR(Soot’s IR:Jimple)"></a>1.2 What IR(Soot’s IR:Jimple)</h3><p><strong>demo1:do while loop</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185733224.png" class="" title="image-20220103185733224">
-<p><strong>demo2:method call</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185756327.png" class="" title="image-20220103185756327">
-<p><strong>demo3:class</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185813310.png" class="" title="image-20220103185813310">
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185825140.png" class="" title="image-20220103185825140">
-
-<h3 id="1-3-Control-Flow-Graph-CFG"><a href="#1-3-Control-Flow-Graph-CFG" class="headerlink" title="1.3 Control Flow Graph(CFG)"></a>1.3 Control Flow Graph(CFG)</h3><h4 id="1-3-1-graph-nodes-basi，c-blocks-BB"><a href="#1-3-1-graph-nodes-basi，c-blocks-BB" class="headerlink" title="1.3.1 graph nodes : basi，c blocks(BB)"></a>1.3.1 graph nodes : basi，c blocks(BB)</h4><h5 id="Basic-Blocks定义"><a href="#Basic-Blocks定义" class="headerlink" title="Basic Blocks定义"></a><strong>Basic Blocks定义</strong></h5><p>入口和出口都是唯一的最大3地址码顺序集合</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103190319354.png" class="" title="image-20220103190319354">
-
-<h5 id="⭐️判别Basic-Blocks方法"><a href="#⭐️判别Basic-Blocks方法" class="headerlink" title="⭐️判别Basic Blocks方法"></a>⭐️<strong>判别Basic Blocks方法</strong></h5><p><strong>step1 ：先找到所有BB的入口(leaders)，可通过下面3中方法判定</strong></p>
-<ul>
-<li><strong>程序中的第一条指令</strong></li>
-<li><strong>任何被jump (goto) 到的目标都为leader</strong></li>
-<li><strong>任何紧跟jump语句后的语句都为leader</strong></li>
-</ul>
-<p><strong>step2：一个leader和后面的所有指令，直到下一个leader为止</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103193220938.png" class="" title="image-20220103193220938">
-
-
-
-<h5 id="例子：3AC转换BBs"><a href="#例子：3AC转换BBs" class="headerlink" title="例子：3AC转换BBs"></a><strong>例子：3AC转换BBs</strong></h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103195204869.png" class="" title="image-20220103195204869">
-
-<h4 id="1-3-2-Graph-edge"><a href="#1-3-2-Graph-edge" class="headerlink" title="1.3.2 Graph edge"></a>1.3.2 Graph edge</h4><h5 id="⭐️如何给BBs加边"><a href="#⭐️如何给BBs加边" class="headerlink" title="⭐️如何给BBs加边"></a>⭐️如何给BBs加边</h5><p><strong>1.不管有无条件的jump，起点与目标的连线</strong></p>
-<p><strong>2.正常的无条件指令，按执行顺序依次连线</strong></p>
-<p><strong>3.第1条的连线用jump指令所在的BB连线代替，如下图A与B</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103200344933.png" class="" title="image-20220103200344933">
-
-<h5 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103201711683.png" class="" title="image-20220103201711683">
-
-<h2 id="2-Data-Flow-Analysis-Applications-（第三、四节课）"><a href="#2-Data-Flow-Analysis-Applications-（第三、四节课）" class="headerlink" title="2.  Data Flow Analysis - Applications （第三、四节课）"></a>2.  Data Flow Analysis - Applications （第三、四节课）</h2><p>下面介绍3钟不同的数据流分析算法，通过算法可以解出CFG可流通的路径，算法不同，路径结果也不同</p>
-<h3 id="2-1-前置知识"><a href="#2-1-前置知识" class="headerlink" title="2.1 前置知识"></a>2.1 前置知识</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183449579.png" class="" title="image-20220103183449579">
-
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183816522.png" class="" title="image-20220103183816522">
-
-
-
-<h3 id="2-2-Reaching-Definitions-Analysis"><a href="#2-2-Reaching-Definitions-Analysis" class="headerlink" title="2.2 Reaching Definitions Analysis"></a>2.2 Reaching Definitions Analysis</h3><h4 id="Reaching-Definitions-定义解析"><a href="#Reaching-Definitions-定义解析" class="headerlink" title="Reaching Definitions 定义解析"></a>Reaching Definitions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103114709803.png" class="" title="image-20220103114709803">
-
-<h4 id="⭐️Reaching-Definitions-实现算法"><a href="#⭐️Reaching-Definitions-实现算法" class="headerlink" title="⭐️Reaching Definitions 实现算法"></a>⭐️Reaching Definitions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115143201.png" class="" title="image-20220103115143201">
-
-<h4 id="Reaching-Definitions-实例演示"><a href="#Reaching-Definitions-实例演示" class="headerlink" title="Reaching Definitions 实例演示"></a>Reaching Definitions 实例演示</h4><p>每一个变量赋值表达式子用都代表一个Definition，这里用Dn表示，蓝色代表变量x，红色代表y，黑色代表m，绿色代表z</p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115459081.png" class="" title="image-20220103115459081">
-
-<h3 id="2-3-Live-Variables-Analysis-（第四节课）"><a href="#2-3-Live-Variables-Analysis-（第四节课）" class="headerlink" title="2.3 Live Variables Analysis （第四节课）"></a>2.3 Live Variables Analysis （第四节课）</h3><h4 id="Live-Variables-定义解析"><a href="#Live-Variables-定义解析" class="headerlink" title="Live Variables 定义解析"></a>Live Variables 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103123845303.png" class="" title="image-20220103123845303">
-
-<h4 id="⭐️Live-Variables-实现算法"><a href="#⭐️Live-Variables-实现算法" class="headerlink" title="⭐️Live Variables 实现算法"></a>⭐️Live Variables 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103163513747.png" class="" title="image-20220103163513747">
-
-<h4 id="Live-Variables-实例演示"><a href="#Live-Variables-实例演示" class="headerlink" title="Live Variables 实例演示"></a>Live Variables 实例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103174745109.png" class="" title="image-20220103174745109">
-
-<h3 id="2-4-Available-Expressions-Analysis"><a href="#2-4-Available-Expressions-Analysis" class="headerlink" title="2.4 Available Expressions Analysis"></a>2.4 Available Expressions Analysis</h3><h4 id="Available-Expressions-定义解析"><a href="#Available-Expressions-定义解析" class="headerlink" title="Available Expressions 定义解析"></a>Available Expressions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180809651.png" class="" title="image-20220103180809651">
-
-<h4 id="⭐️Available-Expressions-实现算法"><a href="#⭐️Available-Expressions-实现算法" class="headerlink" title="⭐️Available Expressions 实现算法"></a>⭐️Available Expressions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180018797.png" class="" title="image-20220103180018797">
-
-<h4 id="Available-Expressions-示例演示"><a href="#Available-Expressions-示例演示" class="headerlink" title="Available Expressions 示例演示"></a>Available Expressions 示例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180716543.png" class="" title="image-20220103180716543">
-
-<h3 id="⭐️2-5-三种数据流分析应用对比"><a href="#⭐️2-5-三种数据流分析应用对比" class="headerlink" title="⭐️2.5 三种数据流分析应用对比"></a>⭐️2.5 三种数据流分析应用对比</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103181138043.png" class="" title="image-20220103181138043">
-
-<h2 id="3-Data-Flow-Analysis-Foundations-（第五、六节课）"><a href="#3-Data-Flow-Analysis-Foundations-（第五、六节课）" class="headerlink" title="3. Data Flow Analysis - Foundations （第五、六节课）"></a>3. Data Flow Analysis - Foundations （第五、六节课）</h2><h3 id="⭐️3-1-Iterative-Algorithm-Another-View"><a href="#⭐️3-1-Iterative-Algorithm-Another-View" class="headerlink" title="⭐️3.1 Iterative Algorithm, Another View"></a>⭐️3.1 Iterative Algorithm, Another View</h3><p>前面3中数据流分析算法满足<strong>不动点定律</strong></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109104249059.png" class="" title="image-20220109104249059">
-
-<h3 id="3-2-Partial-Order"><a href="#3-2-Partial-Order" class="headerlink" title="3.2 Partial Order"></a>3.2 Partial Order</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135207135.png" class="" title="image-20220109135207135">
-
-<h3 id="3-3-Upper-and-Lower-Bounds"><a href="#3-3-Upper-and-Lower-Bounds" class="headerlink" title="3.3 Upper and Lower Bounds"></a>3.3 Upper and Lower Bounds</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135035140.png" class="" title="image-20220109135035140">
-
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109140408193.png" class="" title="image-20220109140408193">
-
-<h3 id="⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><a href="#⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice" class="headerlink" title="⭐️3.4 Lattice, Semilattice, Complete and Product Lattice"></a>⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</h3><ul>
-<li><strong>Lattice(格)：poset中的任意2个元素，都存在最小上界和最大下界</strong></li>
-<li><strong>Semilattice(半格)：poset中的任意2个元素，只有上界或只有下界</strong></li>
-<li><strong>Complete Lattice(完全格)：一个Lattice的任意子集都存在最小上界和最大下界，则称为Complete Lattice</strong><ul>
-<li>其实finite的lattice一定是Complete Lattice（反过来不一定）</li>
-</ul>
-</li>
-<li><strong>Product Lattice：可理解为多个Lattice的笛卡尔积</strong><ul>
-<li>Product Lattice也是一个Lattice</li>
-<li>构成Product Lattice的每一个Lattice都是Complete的，那么这个Product Lattice也是Complete</li>
-</ul>
-</li>
-</ul>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135417528.png" class="" title="image-20220109135417528">
-
-<p>.<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109143223130.png" class="" title="image-20220109143223130"></p>
-<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109142123333.png" class="" title="image-20220109142123333">
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
@@ -681,6 +580,107 @@
 <h2 id="0x03-参考链接"><a href="#0x03-参考链接" class="headerlink" title="0x03 参考链接"></a>0x03 参考链接</h2><p>nginx+php+fpm运行原理  <a class="link"   href="https://segmentfault.com/a/1190000023097951" >https://segmentfault.com/a/1190000023097951<i class="fas fa-external-link-alt"></i></a></p>
 <p>php之函数mysql_connect连接mysql没有任何返回值（2019年）<a class="link"   href="https://blog.csdn.net/Brouce__Lee/article/details/94188470" >https://blog.csdn.net/Brouce__Lee/article/details/94188470<i class="fas fa-external-link-alt"></i></a></p>
 <p>lnpm环境搭建过程  <a class="link"   href="https://www.imooc.com/article/32579" >https://www.imooc.com/article/32579<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>《静态程序分析（南京大学）》课程笔记</title>
+    <url>/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/</url>
+    <content><![CDATA[<p>注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing</p>
+<h2 id="1-Intermediate-Representation-IR-（第二节课）"><a href="#1-Intermediate-Representation-IR-（第二节课）" class="headerlink" title="1. Intermediate Representation(IR)（第二节课）"></a>1. Intermediate Representation(IR)（第二节课）</h2><h3 id="1-1-AST-VS-IR"><a href="#1-1-AST-VS-IR" class="headerlink" title="1.1 AST VS IR"></a>1.1 AST VS IR</h3><p>编译器运行流程</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185425580.png" class="" title="image-20220103185425580">
+
+<p>程序到静态分析的流程理解：<strong>程序-&gt;IR(3addr 3地址码)-&gt;CFG-&gt;静态分析</strong></p>
+<p>AST与IR的区别</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185553431.png" class="" title="image-20220103185553431">
+
+<h3 id="1-2-What-IR-Soot’s-IR-Jimple"><a href="#1-2-What-IR-Soot’s-IR-Jimple" class="headerlink" title="1.2 What IR(Soot’s IR:Jimple)"></a>1.2 What IR(Soot’s IR:Jimple)</h3><p><strong>demo1:do while loop</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185733224.png" class="" title="image-20220103185733224">
+<p><strong>demo2:method call</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185756327.png" class="" title="image-20220103185756327">
+<p><strong>demo3:class</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185813310.png" class="" title="image-20220103185813310">
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103185825140.png" class="" title="image-20220103185825140">
+
+<h3 id="1-3-Control-Flow-Graph-CFG"><a href="#1-3-Control-Flow-Graph-CFG" class="headerlink" title="1.3 Control Flow Graph(CFG)"></a>1.3 Control Flow Graph(CFG)</h3><h4 id="1-3-1-graph-nodes-basi，c-blocks-BB"><a href="#1-3-1-graph-nodes-basi，c-blocks-BB" class="headerlink" title="1.3.1 graph nodes : basi，c blocks(BB)"></a>1.3.1 graph nodes : basi，c blocks(BB)</h4><h5 id="Basic-Blocks定义"><a href="#Basic-Blocks定义" class="headerlink" title="Basic Blocks定义"></a><strong>Basic Blocks定义</strong></h5><p>入口和出口都是唯一的最大3地址码顺序集合</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103190319354.png" class="" title="image-20220103190319354">
+
+<h5 id="⭐️判别Basic-Blocks方法"><a href="#⭐️判别Basic-Blocks方法" class="headerlink" title="⭐️判别Basic Blocks方法"></a>⭐️<strong>判别Basic Blocks方法</strong></h5><p><strong>step1 ：先找到所有BB的入口(leaders)，可通过下面3中方法判定</strong></p>
+<ul>
+<li><strong>程序中的第一条指令</strong></li>
+<li><strong>任何被jump (goto) 到的目标都为leader</strong></li>
+<li><strong>任何紧跟jump语句后的语句都为leader</strong></li>
+</ul>
+<p><strong>step2：一个leader和后面的所有指令，直到下一个leader为止</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103193220938.png" class="" title="image-20220103193220938">
+
+
+
+<h5 id="例子：3AC转换BBs"><a href="#例子：3AC转换BBs" class="headerlink" title="例子：3AC转换BBs"></a><strong>例子：3AC转换BBs</strong></h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103195204869.png" class="" title="image-20220103195204869">
+
+<h4 id="1-3-2-Graph-edge"><a href="#1-3-2-Graph-edge" class="headerlink" title="1.3.2 Graph edge"></a>1.3.2 Graph edge</h4><h5 id="⭐️如何给BBs加边"><a href="#⭐️如何给BBs加边" class="headerlink" title="⭐️如何给BBs加边"></a>⭐️如何给BBs加边</h5><p><strong>1.不管有无条件的jump，起点与目标的连线</strong></p>
+<p><strong>2.正常的无条件指令，按执行顺序依次连线</strong></p>
+<p><strong>3.第1条的连线用jump指令所在的BB连线代替，如下图A与B</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103200344933.png" class="" title="image-20220103200344933">
+
+<h5 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h5><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103201711683.png" class="" title="image-20220103201711683">
+
+<h2 id="2-Data-Flow-Analysis-Applications-（第三、四节课）"><a href="#2-Data-Flow-Analysis-Applications-（第三、四节课）" class="headerlink" title="2.  Data Flow Analysis - Applications （第三、四节课）"></a>2.  Data Flow Analysis - Applications （第三、四节课）</h2><p>下面介绍3钟不同的数据流分析算法，通过算法可以解出CFG可流通的路径，算法不同，路径结果也不同</p>
+<h3 id="2-1-前置知识"><a href="#2-1-前置知识" class="headerlink" title="2.1 前置知识"></a>2.1 前置知识</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183449579.png" class="" title="image-20220103183449579">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103183816522.png" class="" title="image-20220103183816522">
+
+
+
+<h3 id="2-2-Reaching-Definitions-Analysis"><a href="#2-2-Reaching-Definitions-Analysis" class="headerlink" title="2.2 Reaching Definitions Analysis"></a>2.2 Reaching Definitions Analysis</h3><h4 id="Reaching-Definitions-定义解析"><a href="#Reaching-Definitions-定义解析" class="headerlink" title="Reaching Definitions 定义解析"></a>Reaching Definitions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103114709803.png" class="" title="image-20220103114709803">
+
+<h4 id="⭐️Reaching-Definitions-实现算法"><a href="#⭐️Reaching-Definitions-实现算法" class="headerlink" title="⭐️Reaching Definitions 实现算法"></a>⭐️Reaching Definitions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115143201.png" class="" title="image-20220103115143201">
+
+<h4 id="Reaching-Definitions-实例演示"><a href="#Reaching-Definitions-实例演示" class="headerlink" title="Reaching Definitions 实例演示"></a>Reaching Definitions 实例演示</h4><p>每一个变量赋值表达式子用都代表一个Definition，这里用Dn表示，蓝色代表变量x，红色代表y，黑色代表m，绿色代表z</p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103115459081.png" class="" title="image-20220103115459081">
+
+<h3 id="2-3-Live-Variables-Analysis-（第四节课）"><a href="#2-3-Live-Variables-Analysis-（第四节课）" class="headerlink" title="2.3 Live Variables Analysis （第四节课）"></a>2.3 Live Variables Analysis （第四节课）</h3><h4 id="Live-Variables-定义解析"><a href="#Live-Variables-定义解析" class="headerlink" title="Live Variables 定义解析"></a>Live Variables 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103123845303.png" class="" title="image-20220103123845303">
+
+<h4 id="⭐️Live-Variables-实现算法"><a href="#⭐️Live-Variables-实现算法" class="headerlink" title="⭐️Live Variables 实现算法"></a>⭐️Live Variables 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103163513747.png" class="" title="image-20220103163513747">
+
+<h4 id="Live-Variables-实例演示"><a href="#Live-Variables-实例演示" class="headerlink" title="Live Variables 实例演示"></a>Live Variables 实例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103174745109.png" class="" title="image-20220103174745109">
+
+<h3 id="2-4-Available-Expressions-Analysis"><a href="#2-4-Available-Expressions-Analysis" class="headerlink" title="2.4 Available Expressions Analysis"></a>2.4 Available Expressions Analysis</h3><h4 id="Available-Expressions-定义解析"><a href="#Available-Expressions-定义解析" class="headerlink" title="Available Expressions 定义解析"></a>Available Expressions 定义解析</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180809651.png" class="" title="image-20220103180809651">
+
+<h4 id="⭐️Available-Expressions-实现算法"><a href="#⭐️Available-Expressions-实现算法" class="headerlink" title="⭐️Available Expressions 实现算法"></a>⭐️Available Expressions 实现算法</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180018797.png" class="" title="image-20220103180018797">
+
+<h4 id="Available-Expressions-示例演示"><a href="#Available-Expressions-示例演示" class="headerlink" title="Available Expressions 示例演示"></a>Available Expressions 示例演示</h4><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103180716543.png" class="" title="image-20220103180716543">
+
+<h3 id="⭐️2-5-三种数据流分析应用对比"><a href="#⭐️2-5-三种数据流分析应用对比" class="headerlink" title="⭐️2.5 三种数据流分析应用对比"></a>⭐️2.5 三种数据流分析应用对比</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220103181138043.png" class="" title="image-20220103181138043">
+
+<h2 id="3-Data-Flow-Analysis-Foundations-（第五、六节课）"><a href="#3-Data-Flow-Analysis-Foundations-（第五、六节课）" class="headerlink" title="3. Data Flow Analysis - Foundations （第五、六节课）"></a>3. Data Flow Analysis - Foundations （第五、六节课）</h2><h3 id="⭐️3-1-Iterative-Algorithm-Another-View"><a href="#⭐️3-1-Iterative-Algorithm-Another-View" class="headerlink" title="⭐️3.1 Iterative Algorithm, Another View"></a>⭐️3.1 Iterative Algorithm, Another View</h3><p>前面3中数据流分析算法满足<strong>不动点定律</strong></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109104249059.png" class="" title="image-20220109104249059">
+
+<h3 id="3-2-Partial-Order"><a href="#3-2-Partial-Order" class="headerlink" title="3.2 Partial Order"></a>3.2 Partial Order</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135207135.png" class="" title="image-20220109135207135">
+
+<h3 id="3-3-Upper-and-Lower-Bounds"><a href="#3-3-Upper-and-Lower-Bounds" class="headerlink" title="3.3 Upper and Lower Bounds"></a>3.3 Upper and Lower Bounds</h3><img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135035140.png" class="" title="image-20220109135035140">
+
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109140408193.png" class="" title="image-20220109140408193">
+
+<h3 id="⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice"><a href="#⭐️3-4-Lattice-Semilattice-Complete-and-Product-Lattice" class="headerlink" title="⭐️3.4 Lattice, Semilattice, Complete and Product Lattice"></a>⭐️3.4 Lattice, Semilattice, Complete and Product Lattice</h3><ul>
+<li><strong>Lattice(格)：poset中的任意2个元素，都存在最小上界和最大下界</strong></li>
+<li><strong>Semilattice(半格)：poset中的任意2个元素，只有上界或只有下界</strong></li>
+<li><strong>Complete Lattice(完全格)：一个Lattice的任意子集都存在最小上界和最大下界，则称为Complete Lattice</strong><ul>
+<li>其实finite的lattice一定是Complete Lattice（反过来不一定）</li>
+</ul>
+</li>
+<li><strong>Product Lattice：可理解为多个Lattice的笛卡尔积</strong><ul>
+<li>Product Lattice也是一个Lattice</li>
+<li>构成Product Lattice的每一个Lattice都是Complete的，那么这个Product Lattice也是Complete</li>
+</ul>
+</li>
+</ul>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109135417528.png" class="" title="image-20220109135417528">
+
+<p>.<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109143223130.png" class="" title="image-20220109143223130"></p>
+<img src="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/image-20220109142123333.png" class="" title="image-20220109142123333">
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
