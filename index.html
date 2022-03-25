@@ -182,6 +182,34 @@
                 
 
                 <h3 class="home-article-title">
+                    <a href="/2022/03/25/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BCC%E9%93%BE1-7%E5%AD%A6%E4%B9%A0/">
+                        java反序列化之CC链1-7学习
+                    </a>
+                </h3>
+
+                <div class="home-article-content markdown-body">
+                    
+                        基础知识假设某服务器接收java字节码并使用ObjectInputStream.readObject方法进行反序列化，我们将包含执行命令代码的Test类序列化后直接传给服务器，这时服务器上并不会触发命令，而是报错，因为会找不到Test类，所以想要触发...
+                    
+                </div>
+
+                <div class="home-article-meta-info-container">
+    <div class="home-article-meta-info">
+        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Fri Mar 25 2022 11:26:16 GMT+0800">2022-03-25</span></span>
+        
+        
+    </div>
+
+    <a href="/2022/03/25/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BCC%E9%93%BE1-7%E5%AD%A6%E4%B9%A0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+</div>
+
+            </li>
+        
+            <li class="home-article-item">
+
+                
+
+                <h3 class="home-article-title">
                     <a href="/2022/02/24/ysoserial-URLDNS%E5%88%86%E6%9E%90/">
                         ysoserial URLDNS分析
                     </a>
@@ -271,16 +299,15 @@
                 
 
                 <h3 class="home-article-title">
-                    <a href="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/">
-                        SSRF绕过姿势汇总
+                    <a href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/">
+                        DNS重绑定与SSRF绕过
                     </a>
                 </h3>
 
                 <div class="home-article-content markdown-body">
                     
-                        1. @符号绕过http://www.baidu.com@10.10.10.10与http://10.10.10.10请求是相同的
-该请求得到的内容都是10.10.10.10的内容，此绕过同样在URL跳转绕过中适用。
-2. 点分隔符替换在浏览器中可以...
+                        0x01 DNS重绑定(DNS Rebinding)通常我们通过域名访问应用的流程是：浏览器向DNS服务器发送请求，DNS服务器将请求的域名转换为ip地址，然后向对应的IP地址请求资源，最后回显给用户。
+在访问DNS后请求方会缓存域名和IP的对应关系...
                     
                 </div>
 
@@ -291,7 +318,7 @@
         
     </div>
 
-    <a href="/2022/01/12/SSRF%E7%BB%95%E8%BF%87%E5%A7%BF%E5%8A%BF%E6%B1%87%E6%80%BB/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -414,40 +441,6 @@ DFA与NFA机制上的不同带来3种主要影响：
     </div>
 
     <a href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
-</div>
-
-            </li>
-        
-            <li class="home-article-item">
-
-                
-
-                <h3 class="home-article-title">
-                    <a href="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/">
-                        手动搭建nginx+php-fpm+mysql环境--信安之路实验
-                    </a>
-                </h3>
-
-                <div class="home-article-content markdown-body">
-                    
-                        0x01 关键过程1.安装nigix12apt-get install nginx	#安装nginxservice nginx start		#启动nginx
-
-安装后浏览器访问本地ip。
-
-
-2.安装php7.2-fpm和配置nginx
-安装php...
-                    
-                </div>
-
-                <div class="home-article-meta-info-container">
-    <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Mon Jun 14 2021 16:30:36 GMT+0800">2021-06-14</span></span>
-        
-        
-    </div>
-
-    <a href="/2021/06/14/%E6%89%8B%E5%8A%A8%E6%90%AD%E5%BB%BAnginx-php-fpm-mysql%E7%8E%AF%E5%A2%83-%E4%BF%A1%E5%AE%89%E4%B9%8B%E8%B7%AF%E5%AE%9E%E9%AA%8C/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
