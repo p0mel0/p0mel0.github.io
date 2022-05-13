@@ -9,8 +9,6 @@
     
     <title>
         
-            Archive: 2021 |
-        
         p0melo&#39;blog
     </title>
     
@@ -61,7 +59,7 @@
                 <ul class="menu-list">
                     
                         <li class="menu-item">
-                            <a class=""
+                            <a class="active"
                                href="/"
                             >
                                 HOME
@@ -69,7 +67,7 @@
                         </li>
                     
                         <li class="menu-item">
-                            <a class="active"
+                            <a class=""
                                href="/archives"
                             >
                                 ARCHIVES
@@ -98,12 +96,12 @@
         <ul class="drawer-menu-list">
             
                 <li class="drawer-menu-item flex-center">
-                    <a class=""
+                    <a class="active"
                        href="/">HOME</a>
                 </li>
             
                 <li class="drawer-menu-item flex-center">
-                    <a class="active"
+                    <a class=""
                        href="/archives">ARCHIVES</a>
                 </li>
             
@@ -122,112 +120,58 @@
             <div class="main-content">
 
                 
-                    <div class="fade-in-down-animation">
-    <div class="archive-container ">
+                    <div class="home-content-container fade-in-down-animation">
+    <ul class="home-article-list">
         
-<div class="archive-list-container">
+            <li class="home-article-item">
+
+                
+
+                <h3 class="home-article-title">
+                    <a href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/">
+                        通过mysql获取shell的几种方法
+                    </a>
+                </h3>
+
+                <div class="home-article-content markdown-body">
+                    
+                        0x01 利用outfile函数写shell条件
+1.当前数据库用户为root权限
+2.secure-file-priv为空（或包含web目录）
+3.已知网站的绝对路径且具有写的权限
+利用步骤
+12select &#39;&lt;?php  @eva...
+                    
+                </div>
+
+                <div class="home-article-meta-info-container">
+    <div class="home-article-meta-info">
+        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Sat Jun 19 2021 09:30:36 GMT+0800">2021-06-19</span></span>
+        
+        
+    </div>
+
+    <a href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+</div>
+
+            </li>
+        
+    </ul>
+
+    <div class="home-paginator">
+        <div class="paginator">
     
-        <section class="archive-item">
-            <div class="archive-item-header">
-                <span class="archive-year">2022</span>
-                <span class="archive-year-post-count">[7]</span>
-            </div>
-            <ul class="article-list">
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/"
-                        >Oauth2.0安全问题</a>
-                        <span class="article-date">05-13</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/04/18/Spring-Framework-RCE%E5%88%86%E6%9E%90/"
-                        >Spring Framework RCE分析</a>
-                        <span class="article-date">04-18</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/03/25/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BCC%E9%93%BE1-7%E5%AD%A6%E4%B9%A0/"
-                        >java反序列化之CC链1-7学习</a>
-                        <span class="article-date">03-25</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/02/24/ysoserial-URLDNS%E5%88%86%E6%9E%90/"
-                        >ysoserial URLDNS分析</a>
-                        <span class="article-date">02-24</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/"
-                        >log4j2 RCE分析与复现</a>
-                        <span class="article-date">01-22</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/"
-                        >《静态程序分析（南京大学）》课程笔记</a>
-                        <span class="article-date">01-15</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/"
-                        >DNS重绑定与SSRF绕过</a>
-                        <span class="article-date">01-12</span>
-                    </li>
-                
-            </ul>
-        </section>
+        <a class="prev btn"
+           href="/"
+        >Prev</a>
     
-        <section class="archive-item">
-            <div class="archive-item-header">
-                <span class="archive-year">2021</span>
-                <span class="archive-year-post-count">[4]</span>
-            </div>
-            <ul class="article-list">
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/"
-                        >PHP的PCRE库回溯问题</a>
-                        <span class="article-date">10-12</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/"
-                        >CSP策略及绕过方法</a>
-                        <span class="article-date">07-20</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/"
-                        >suid提权学习</a>
-                        <span class="article-date">06-27</span>
-                    </li>
-                
-                    <li class="article-item">
-                        <a class="article-title"
-                           href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/"
-                        >通过mysql获取shell的几种方法</a>
-                        <span class="article-date">06-19</span>
-                    </li>
-                
-            </ul>
-        </section>
+
     
 </div>
 
     </div>
 </div>
+
 
                 
             </div>
@@ -339,6 +283,7 @@
     
 
 </main>
+
 
 
 
