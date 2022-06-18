@@ -194,7 +194,7 @@
 <h1 id="4-水平越权"><a href="#4-水平越权" class="headerlink" title="4.水平越权"></a>4.水平越权</h1><p>最后这个问题算是资源服务器的问题，没有在开局的图中体现出来，开局的图主要说明的是客户端和授权服务器的流程，所以这个放最后讲下，先看下图</p>
 <img src="/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/image_oHtFLdiLob.png" class="">
 
-<p>小兔打单软件是授权服务器，可以给多个商家授权，商家就属于客户端，授权服务器生成的access_token返回到客户端的tokenCallback处理（开局图流程的最下方），这里将access_token转化为真正的用户数据，也就是这里的商家ID，此时受保护资源服务的API没有对商家 ID 和订单 ID 做归属判断，那么商家A就可以能查看到商家B的订单数据</p>
+<p>小兔打单软件是授权服务器，可以给多个商家授权，商家就属于客户端，授权服务器生成的access_token返回到客户端的tokenCallback处理（开局图流程的最下方），这里将access_token转化为包括商家ID的用户数据，，假设受保护资源服务有一个通过订单IP查询订单详情的API，若API没有对订单 ID和access_token解出来的商家 ID  做归属判断，那么商家A就能查看到商家B的订单数据</p>
 <p>防御方法：资源服务API需要对API操作的数据与access_token解析的权限内容做归属判断</p>
 <h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><p><a class="link"   target="_blank" rel="noopener" href="https://zq99299.github.io/note-book/oath2/02/02.html"  title="https://zq99299.github.io/note-book/oath2/02/02.html">https://zq99299.github.io/note-book/oath2/02/02.html<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://blog.51cto.com/u_13626762/3113777"  title="https://blog.51cto.com/u_13626762/3113777">https://blog.51cto.com/u_13626762/3113777<i class="fas fa-external-link-alt"></i></a></p>
@@ -206,6 +206,21 @@
 
         
             <div class="article-nav">
+                
+                    <div class="article-prev">
+                        <a class="prev"
+                           rel="prev"
+                           href="/2022/06/18/HTB%E4%B9%8BKotarak/"
+                        >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">HTB之Kotarak</span>
+                                <span class="post-nav-item">Prev posts</span>
+                            </span>
+                        </a>
+                    </div>
                 
                 
                     <div class="article-next">
