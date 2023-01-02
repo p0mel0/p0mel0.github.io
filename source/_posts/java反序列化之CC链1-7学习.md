@@ -10,7 +10,7 @@ tags:
 
 **如果反序列化的类定义了`readObject`方法，在服务器上执行`ObjectInputStream.readObject`时，会自动调用反序列化类中的`readObject`方法，更进一步的，如果反序列化类的`readObject`方法中执行了该类成员变量的某些方法，而这些成员变量是可控的，一个反序列化利用或许就出现了**。在`readObject`反序列化中有个重要利用链就是Commons-Collections组件的利用链，该组件是各种中间件必用的组件，利用的非常广泛。
 
-先看下CommonsCollections链中都会用到的几个类，这几个类是调用任意类和方法的关键，都实现了`Transformer`接口，该接口就一个`transform`方法，我们重点关注这几个实现类的`transform`方法的逻辑。
+先看下CommonsCollections链中几个关键的类，这几个类就可以实现任意任意类和方法的调用，都实现了`Transformer`接口，该接口就一个`transform`方法，我们重点关注这几个实现类的`transform`方法的逻辑。
 
 ### ConstantTransformer
 
@@ -73,7 +73,7 @@ public Object transform(Object object) {
 
 ### 合并
 
-现在我们将上面三个类串起来，举个执行命令的简单例子，创建一个`Transformer`数组，将Runtime对象传入`ConstantTransformer`作为第一个元素，通过`InvokerTransformer`调用`Runtime`实例的`exec`方法放在第二个元素，然后将`Transformer`数组传入`ChainedTransformer`构造方法，最后调用其`transform`方法就可以触发命令。
+现在我们将上面三个类串起来，写一个执行命令的简单例子，创建一个`Transformer`数组，将Runtime对象传入`ConstantTransformer`作为第一个元素，通过`InvokerTransformer`调用`Runtime`实例的`exec`方法放在第二个元素，然后将`Transformer`数组传入`ChainedTransformer`构造方法，最后调用其`transform`方法就可以触发命令。
 
 ![image-20220305230623599](java反序列化之CC链1-7学习/image-20220305230623599.png)
 
@@ -83,7 +83,7 @@ public Object transform(Object object) {
 
 > Java中不是所有对象都支持序列化，待序列化的对象和所有它使用的内部属性对象，必须都实现了 java.io.Serializable 接口。而我们最早传给ConstantTransformer的是Runtime.getRuntime() ，Runtime类是没有实现 java.io.Serializable 接口的，所以不允许被序列化。
 >
->  Runtime.getRuntime() 换成了 Runtime.class ，前者是一个java.lang.Runtime 对象，后者是一个 java.lang.Class 对象。Class类有实现Serializable接口，所以可以被序列化。
+>  所以需要将Runtime.getRuntime() 换成 Runtime.class ，前者是一个java.lang.Runtime 对象，后者是一个 java.lang.Class 对象。Class类有实现Serializable接口，所以可以被序列化。
 
 ```java
 Transformer[] transformers = {
@@ -440,9 +440,7 @@ CC3的前半截调用过程和CC1一样，区别就是CC3用`InstantiateTransfor
 
 
 
-## 总结
 
-这些CC链看起来复杂，其实真正分析下去，会发现利用链路很清晰，并且各个链有一定的联系和相似之处。《java安全漫谈》中p牛并没有从cc1-7挨个讲解，而是根据自己学习探索过程中发现的问题，深入思考如何解决问题和进一步思考优化利用链，从而使多个CC链的关系能够串起来方便理解，大佬的学习方式值得学习，同时感叹独立思考也很重要。
 
 ## 参考
 

