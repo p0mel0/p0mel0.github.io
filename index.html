@@ -9,28 +9,36 @@
     
     <title>
         
-        p0melo&#39;blog
+        p0melo&#39;s blog
     </title>
     
 <link rel="stylesheet" href="/css/style.css">
 
     <link rel="shortcut icon" href="/images/p0melo.svg">
     
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/brands.min.css">
 
     <script id="hexo-configurations">
     let KEEP = window.KEEP || {};
     KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
-    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/8ad759f62321493ee2e3565c60a3632a.jpeg","description":"心之所向，素履以往，生如逆旅，一苇以航。"},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066cc","logo":null,"favicon":"/images/p0melo.svg","avatar":"/images/p0melo.svg","font_size":null,"font_family":null,"hover":{"shadow":false,"scale":false},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"心之所向，素履以往，生如逆旅，一苇以航。","font_color":null,"hitokoto":false},"scroll":{"progress_bar":false,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":false},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"appid":"E3140V5fTteP8KzwJweuefl2-gzGzoHsz","appkey":"Wo0PLY3dWpTTzUDW3Hbj6Gud","placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.7"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":false,"auto":false,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.5.2"};
     KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"};
   </script>
-<meta name="generator" content="Hexo 5.4.0"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
 <div class="progress-bar-container">
-    
-        <span class="scroll-progress-bar"></span>
     
 
     
@@ -40,32 +48,52 @@
 <main class="page-container">
 
     
-        <div class="first-screen-container flex-center fade-in-down-animation">
+        
+<div class="first-screen-container flex-center fade-in-down-animation">
     <div class="content flex-center">
-        <div class="description">
-            心之所向，素履以往，生如逆旅，一苇以航。
-        </div>
+        
+            <div class="description hitokoto">
+                
+                    <div class="desc-item">心之所向，素履以往，生如逆旅，一苇以航。</div>
+                
+            </div>
+        
+        
         
             <div class="s-icon-list">
                 
                     
                         
-                            <span class="s-icon-item github">
-                                <a target="_blank" href="https://github.com/p0mel0">
-                                    <i class="fab fa-github"></i>
-                                </a>
-                            </span>
-                        
+                        <div class="tooltip s-icon-item "
+                             data-content="GitHub"
+                             data-name="github"
+                             
+                        >
+                            
+                                
+                                    <a target="_blank" href="https://github.com/p0mel0/">
+                                        <i class="fab fa-github"></i>
+                                    </a>
+                                
+                            
+                        </div>
                     
                 
                     
                         
-                            <span class="s-icon-item weixin">
-                                <a target="_blank" href="https://qr.api.cli.im/newqr/create?data=https%3A%2F%2Fu.wechat.com%2FMBVUhQXDhHTi2M38BWyXUvI&level=H&transparent=false&bgcolor=%23ffffff&forecolor=%23000000&blockpixel=12&marginblock=1&logourl=&logoshape=no&size=500&kid=cliim&key=1f4e2efe55640649486598edc1e44b9e">
-                                    <i class="fab fa-weixin"></i>
-                                </a>
-                            </span>
-                        
+                        <div class="tooltip s-icon-item "
+                             data-content="WeChat"
+                             data-name="weixin"
+                             
+                        >
+                            
+                                
+                                    <a target="_blank" href="./images/wechat.jpg">
+                                        <i class="fab fa-weixin"></i>
+                                    </a>
+                                
+                            
+                        </div>
                     
                 
                     
@@ -80,12 +108,17 @@
                 
                     
                         
-                            <span class="s-icon-item email">
+                        <div class="tooltip s-icon-item "
+                             data-content="Email"
+                             data-name="email"
+                             
+                        >
+                            
                                 <a href="mailto:admin@mail.p0melo.top">
                                     <i class="fas fa-envelope"></i>
                                 </a>
-                            </span>
-                        
+                            
+                        </div>
                     
                 
             </div>
@@ -95,16 +128,17 @@
 
     
 
-    <div class="page-main-content">
+    <div class="page-main-content is-home">
 
         <div class="page-main-content-top">
-            <header class="header-wrapper">
+            
+<header class="header-wrapper transparent-1">
 
     <div class="header-content has-first-screen">
         <div class="left">
             
             <a class="logo-title" href="/">
-                p0melo&#39;blog
+               p0melo&#39;s blog
             </a>
         </div>
 
@@ -125,6 +159,14 @@
                                href="/archives"
                             >
                                 ARCHIVES
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                TAGS
                             </a>
                         </li>
                     
@@ -159,6 +201,11 @@
                        href="/archives">ARCHIVES</a>
                 </li>
             
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">TAGS</a>
+                </li>
+            
         </ul>
     </div>
 
@@ -187,7 +234,7 @@
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         前言Kotarak这题难度为Hard，涉及的技术点还是挺多的，打下来还是收获不少，值得玩一玩儿
 nmap扫描开放端口
@@ -200,14 +247,20 @@ nmap扫描开放端口
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Sat Jun 18 2022 18:12:38 GMT+0800">2022-06-18</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/06/18/HTB%E4%B9%8BKotarak/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/06/18/HTB%E4%B9%8BKotarak/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -222,7 +275,7 @@ nmap扫描开放端口
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         前言开局一张图
 
@@ -231,14 +284,20 @@ nmap扫描开放端口
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Fri May 13 2022 22:37:12 GMT+0800">2022-05-13</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/05/13/Oauth2-0%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -253,26 +312,32 @@ nmap扫描开放端口
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         漏洞介绍CVE编号
 CVE-2022-22965
 影响范围
 
-JDK &gt;= 9
+JDK &gt;&#x3D; 9
 使用Apache Tomcat 作为Servlet容器，并且使用传统的war包部署方法
-Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
+Spring Framework 5.3.0 - 5.3.17，5...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Mon Apr 18 2022 01:01:35 GMT+0800">2022-04-18</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/04/18/Spring-Framework-RCE%E5%88%86%E6%9E%90/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/04/18/Spring-Framework-RCE%E5%88%86%E6%9E%90/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -287,20 +352,26 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         基础知识假设某服务器接收java字节码并使用ObjectInputStream.readObject方法进行反序列化，我们将包含执行命令代码的Test类序列化后直接传给服务器，这时服务器上并不会触发命令，而是报错，因为会找不到Test类，所以想要触发...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Fri Mar 25 2022 11:26:16 GMT+0800">2022-03-25</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Mon Jan 02 2023 16:23:27 GMT+0800">
+                2023-01-02
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/03/25/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BCC%E9%93%BE1-7%E5%AD%A6%E4%B9%A0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/03/25/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BCC%E9%93%BE1-7%E5%AD%A6%E4%B9%A0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -315,20 +386,26 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         前言最近在学习p牛的《java安全漫谈》，文中许多简化版易于理解的demo，根据对demo的理解结合ysoserial源码学习java反序列化，对ysoserial源码分析过程做下记录，本文先记录下URLDNS的分析过程，后续再继续学习记录所有CC链...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Thu Feb 24 2022 10:40:14 GMT+0800">2022-02-24</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/02/24/ysoserial-URLDNS%E5%88%86%E6%9E%90/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/02/24/ysoserial-URLDNS%E5%88%86%E6%9E%90/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -343,21 +420,27 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         去年12月份爆出了log4j2 RCE的漏洞（CVE-2021-44228），该漏洞利用难度低，危害大，且影响范围广泛，这将有可能是载入安全史册的漏洞，作为史诗级漏洞的见证者，写个漏洞分析留个底还是有必要的😄
 0x00 漏洞复现复现比较简单，先引入...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Sat Jan 22 2022 18:01:45 GMT+0800">2022-01-22</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/01/22/log4j2-RCE%E5%88%86%E6%9E%90%E4%B8%8E%E5%A4%8D%E7%8E%B0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -372,7 +455,7 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         注：⭐️符号代表重要的知识点，课程还未学习完，笔记更新中ing
 1. Intermediate Representation(IR)（第二节课）1.1 AST VS IR编译器运行流程
@@ -382,14 +465,20 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Sat Jan 15 2022 21:32:13 GMT+0800">2022-01-15</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/01/15/%E3%80%8A%E9%9D%99%E6%80%81%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%EF%BC%88%E5%8D%97%E4%BA%AC%E5%A4%A7%E5%AD%A6%EF%BC%89%E3%80%8B%E8%AF%BE%E7%A8%8B%E7%AC%94%E8%AE%B0/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -404,21 +493,27 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         0x01 DNS重绑定(DNS Rebinding)通常我们通过域名访问应用的流程是：浏览器向DNS服务器发送请求，DNS服务器将请求的域名转换为ip地址，然后向对应的IP地址请求资源，最后回显给用户。
 在访问DNS后请求方会缓存域名和IP的对应关系...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Wed Jan 12 2022 19:17:47 GMT+0800">2022-01-12</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -433,7 +528,7 @@ Spring Framework 5.3.0 - 5.3.17，5.2.0 ...
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下
 DFA与NFA先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。
@@ -442,14 +537,20 @@ DFA与NFA机制上的不同带来3种主要影响：
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Tue Oct 12 2021 19:16:35 GMT+0800">2021-10-12</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -464,21 +565,27 @@ DFA与NFA机制上的不同带来3种主要影响：
                     </a>
                 </h3>
 
-                <div class="home-article-content markdown-body">
+                <div class="home-article-content keep-markdown-body">
                     
                         XSS是最常见、危害最大的网页安全漏洞，想要抵御它们，要采取非常多编程措施，非常麻烦。那么，有没有可以从根本上解决问题，浏览器自动禁止外部注入恶意脚本的方法呢？CSP应运而生。
 什么是CSPCSP（Content Security Policy，内容...
                     
                 </div>
 
-                <div class="home-article-meta-info-container">
+                
+<div class="home-article-meta-info-container">
     <div class="home-article-meta-info">
-        <span><i class="fas fa-history"></i>&nbsp;<span class="home-article-date" data-date="Tue Jul 20 2021 17:38:09 GMT+0800">2021-07-20</span></span>
+        <span>
+            <i class="fas fa-history"></i>&nbsp;
+            <span class="home-article-date" data-date="Sat Jul 09 2022 18:07:27 GMT+0800">
+                2022-07-09
+            </span>
+        </span>
         
         
     </div>
 
-    <a href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
+    <a class="read-more" href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/">Read more&nbsp;<i class="fas fa-angle-right"></i></a>
 </div>
 
             </li>
@@ -506,19 +613,25 @@ DFA与NFA机制上的不同带来3种主要影响：
         </div>
 
         <div class="page-main-content-bottom">
-            <footer class="footer">
+            
+<footer class="footer">
     <div class="info-container">
         <div class="copyright-info info-item">
             &copy;
             
-            2023&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+                <span>2020</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">p0melo</a>
+            
         </div>
         
-		<!--
         <div class="theme-info info-item">
-            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.5.2</a>
         </div>
-		-->
+        
         
     </div>
 </footer>
@@ -537,10 +650,6 @@ DFA与NFA机制上的不同带来3种主要影响：
 
         <li class="tools-item tool-font-adjust-minus flex-center">
             <i class="fas fa-search-minus"></i>
-        </li>
-
-        <li class="tools-item tool-expand-width flex-center">
-            <i class="fas fa-arrows-alt-h"></i>
         </li>
 
         <li class="tools-item tool-dark-light-toggle flex-center">
@@ -571,10 +680,8 @@ DFA与NFA机制上的不同带来3种主要影响：
 
     </div>
 
-    
-
-    <div class="image-viewer-container">
-    <img src="">
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
 </div>
 
 
@@ -595,7 +702,7 @@ DFA与NFA机制上的不同带来3种主要影响：
                        class="search-input"
                 >
             </div>
-            <span class="popup-btn-close">
+            <span class="close-popup-btn">
                 <i class="fas fa-times"></i>
             </span>
         </div>
@@ -627,10 +734,16 @@ DFA与NFA机制上的不同带来3种主要影响：
 
 
 
+
+
     
 <script src="/js/local-search.js"></script>
 
 
+
+
+    
+<script src="/js/code-block.js"></script>
 
 
 

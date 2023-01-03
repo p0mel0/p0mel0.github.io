@@ -11,28 +11,36 @@
         
             PHP的PCRE库回溯问题 |
         
-        p0melo&#39;blog
+        p0melo&#39;s blog
     </title>
     
 <link rel="stylesheet" href="/css/style.css">
 
     <link rel="shortcut icon" href="/images/p0melo.svg">
     
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/brands.min.css">
 
     <script id="hexo-configurations">
     let KEEP = window.KEEP || {};
     KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
-    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true},"style":{"primary_color":"#0066CC","avatar":"/images/p0melo.svg","favicon":"/images/p0melo.svg","article_img_align":"left","left_side_width":"300px","content_max_width":"950px","hover":{"shadow":true,"scale":true},"first_screen":{"enable":true,"background_img":"/images/8ad759f62321493ee2e3565c60a3632a.jpeg","description":"心之所向，素履以往，生如逆旅，一苇以航。"},"scroll":{"progress_bar":{"enable":true},"percent":{"enable":false}}},"local_search":{"enable":true,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.3"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066cc","logo":null,"favicon":"/images/p0melo.svg","avatar":"/images/p0melo.svg","font_size":null,"font_family":null,"hover":{"shadow":false,"scale":false},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"心之所向，素履以往，生如逆旅，一苇以航。","font_color":null,"hitokoto":false},"scroll":{"progress_bar":false,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":false},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"appid":"E3140V5fTteP8KzwJweuefl2-gzGzoHsz","appkey":"Wo0PLY3dWpTTzUDW3Hbj6Gud","placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.7"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":false,"auto":false,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.5.2"};
     KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"};
   </script>
-<meta name="generator" content="Hexo 5.4.0"></head>
+<meta name="generator" content="Hexo 6.3.0"></head>
 
 
 <body>
 <div class="progress-bar-container">
-    
-        <span class="scroll-progress-bar"></span>
     
 
     
@@ -46,13 +54,14 @@
     <div class="page-main-content">
 
         <div class="page-main-content-top">
-            <header class="header-wrapper">
+            
+<header class="header-wrapper">
 
     <div class="header-content">
         <div class="left">
             
             <a class="logo-title" href="/">
-                p0melo&#39;blog
+               p0melo&#39;s blog
             </a>
         </div>
 
@@ -73,6 +82,14 @@
                                href="/archives"
                             >
                                 ARCHIVES
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                TAGS
                             </a>
                         </li>
                     
@@ -107,6 +124,11 @@
                        href="/archives">ARCHIVES</a>
                 </li>
             
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">TAGS</a>
+                </li>
+            
         </ul>
     </div>
 
@@ -123,29 +145,39 @@
 
                 
                     <div class="fade-in-down-animation">
-    <div class="article-content-container">
+    <div class="post-page-container">
+        <div class="article-content-container">
 
-        <div class="article-title">
-            <span class="title-hover-animation">PHP的PCRE库回溯问题</span>
-        </div>
+            <div class="article-title">
+                <span class="title-hover-animation">PHP的PCRE库回溯问题</span>
+            </div>
 
-        
-            <div class="article-header">
-                <div class="avatar">
-                    <img src="/images/p0melo.svg">
-                </div>
-                <div class="info">
-                    <div class="author">
-                        <span class="name">p0melo</span>
-                        
-                            <span class="author-label">Lv2</span>
-                        
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/p0melo.svg">
                     </div>
-                    <div class="meta-info">
-                        <div class="article-meta-info">
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">p0melo</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
     <span class="article-date article-meta-item">
-        <i class="fas fa-edit"></i>&nbsp;2021-10-12 19:16:35
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2021-10-12 19:16:35</span>
+        <span class="mobile">2021-10-12 19:16</span>
     </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2022-07-09 18:07:27</span>
+    </span>
+    
     
     
 
@@ -155,13 +187,13 @@
     
 </div>
 
+                        </div>
                     </div>
                 </div>
-            </div>
-        
+            
 
-        <div class="article-content markdown-body">
-            <p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
+            <div class="article-content keep-markdown-body">
+                <p>最近发现对PCRE的回溯机制理解还是很模糊，决定再仔细复习记录下</p>
 <h2 id="DFA与NFA"><a href="#DFA与NFA" class="headerlink" title="DFA与NFA"></a>DFA与NFA</h2><p>先简单了解下DFA与NFA这两种正则引擎：DFA为确定性有穷自动机，是文本主导，NFA为非确定性有穷自动机，是表达式主导。</p>
 <p>DFA与NFA机制上的不同带来3种主要影响：</p>
 <ol>
@@ -172,7 +204,7 @@
 <p><strong>针对第2点，这里举个例子来说明：</strong></p>
 <p>比如正则表达式<code>/aaa|aaabbb/</code>与字符串<code>aaabbbccc</code>匹配，在php和awk的匹配结果就不一样。</p>
 <p>php的pcre库是NFA引擎，<strong>匹配结果是aaa</strong>。</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">php &gt; preg_match(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; print_r(<span class="variable">$matches</span>);</span><br><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">php &gt; <span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/aaa|aaabbb/&#x27;</span>,<span class="string">&#x27;aaabbbccc&#x27;</span>,<span class="variable">$matches</span>);</span><br><span class="line">php &gt; <span class="title function_ invoke__">print_r</span>(<span class="variable">$matches</span>);</span><br><span class="line"><span class="title function_ invoke__">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; aaa</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
 <p>awk使用的是DFA引擎，这里通过awk的sub函数将正则匹配中的内容替换为<code>(replace)</code>，可以看到<strong>匹配中的是aaabbb</strong>。</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@p0melo:/tmp<span class="comment"># cat 1.txt</span></span><br><span class="line">aaabbbccc</span><br><span class="line">root@p0melo:/tmp<span class="comment"># awk &#x27;sub(/aaa|aaabbb/,&quot;(replace)&quot;)&#x27; 1.txt</span></span><br><span class="line">(replace)ccc</span><br><span class="line">root@p0melo:/tmp<span class="comment">#</span></span><br></pre></td></tr></table></figure>
@@ -201,139 +233,164 @@
 
 <p>所以通过这个例子可以看出来，贪婪模式和非贪婪模式都会有回溯机制。</p>
 <h2 id="回溯机制引发的问题"><a href="#回溯机制引发的问题" class="headerlink" title="回溯机制引发的问题"></a>回溯机制引发的问题</h2><p>上面例子的回溯次数会随着字符b的数量增加而增加，当回溯次数非常大时，就可能会导致拒绝服务攻击（redos），PHP给pcre设定了一个回溯次数上限pcre.backtrack_limit来防止redos问题。我们可以通过var_dump(ini_get(‘pcre.backtrack_limit’));的方式查看当前环境下的上限：</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php &gt; var_dump(ini_get(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">php &gt; <span class="title function_ invoke__">var_dump</span>(<span class="title function_ invoke__">ini_get</span>(<span class="string">&#x27;pcre.backtrack_limit&#x27;</span>));</span><br><span class="line"><span class="keyword">string</span>(<span class="number">7</span>) <span class="string">&quot;1000000&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>当回溯次数大于1000000会有什么问题呢？</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; var_dump(preg_match(<span class="string">&#x27;/.*?a/s&#x27;</span>,str_repeat(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">php &gt; <span class="title function_ invoke__">var_dump</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/.*a/s&#x27;</span>,<span class="string">&#x27;a&#x27;</span>.<span class="title function_ invoke__">str_repeat</span>(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>)));  <span class="comment">// 贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br><span class="line">php &gt; <span class="title function_ invoke__">var_dump</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/.*?a/s&#x27;</span>,<span class="title function_ invoke__">str_repeat</span>(<span class="string">&#x27;b&#x27;</span>,<span class="number">1000000</span>).<span class="string">&#x27;a&#x27;</span>));  <span class="comment">// 非贪婪模式</span></span><br><span class="line"><span class="keyword">bool</span>(<span class="literal">false</span>)</span><br></pre></td></tr></table></figure>
 
 <p>这里返回了false，并非正常匹配上返回的1，不匹配返回的0，官方文档也对这现象做出了解释：</p>
 <img src="/2021/10/12/PHP%E7%9A%84PCRE%E5%BA%93%E8%B4%AA%E5%A9%AA%E5%9B%9E%E6%BA%AF%E9%97%AE%E9%A2%98/image-20211013100741170.png" class="" title="image-20211013100741170">
 
 <p>所以我们也可以通过该特性绕过一些限制，比如基于php的waf：</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/SELECT.+FROM.+/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这里可以输入类似<code>SELECT * FROM XXX /*aaaaaaa......</code>的payload使回溯次数超过限制，从而返回false绕过if判断，类似还有非贪婪模式的错误用法：</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p> 可以使用<code>UNION/*aaaaa......*/SELECT</code>增加回溯次数来绕过限制。</p>
 <p><strong>修复方法</strong></p>
 <p>我们可以通过全等号来判断<code>preg_match</code>的返回值</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(preg_match(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/UNION.+?SELECT/is&#x27;</span>, <span class="variable">$input</span>) === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;SQL Injection&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/liuxiao723846/article/details/83308081" >正则引擎：DFA与NFA<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://blog.csdn.net/zpflwy1314/article/details/82665254" >DFA与NFA的比较<i class="fas fa-external-link-alt"></i></a></p>
 <p><a class="link"   target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/use-pcre-backtrack-limit-to-bypass-restrict.html" >PHP利用PCRE回溯次数限制绕过某些安全限制<i class="fas fa-external-link-alt"></i></a></p>
 
-        </div>
+            </div>
 
-        
+            
+                <div class="post-copyright-info">
+                    <div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li>
+            <span class="type">Post title</span>：<span class="content">PHP的PCRE库回溯问题</span>
+        </li>
+        <li>
+            <span class="type">Post author</span>：<span class="content">p0melo</span>
+        </li>
+        <li>
+            <span class="type">Create time</span>：<span class="content">2021-10-12 19:16:35</span>
+        </li>
+        <li class="post-link">
+            <span class="type">Post link</span>：<span class="content">2021/10/12/PHP的PCRE库贪婪回溯问题/</span>
+        </li>
+        <li>
+            <span class="type">Copyright Notice</span>：<span class="content">All articles in this blog are licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> unless stating additionally.</span>
+        </li>
+    </ul>
+</div>
 
-        
-            <div class="article-nav">
-                
-                    <div class="article-prev">
-                        <a class="prev"
-                           rel="prev"
-                           href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/"
-                        >
+                </div>
+            
+
+            
+
+            
+                <div class="article-nav">
+                    
+                        <div class="article-prev">
+                            <a class="prev"
+                               rel="prev"
+                               href="/2022/01/12/DNS%E9%87%8D%E7%BB%91%E5%AE%9A%E4%B8%8ESSRF%E7%BB%95%E8%BF%87/"
+                            >
                             <span class="left arrow-icon flex-center">
                               <i class="fas fa-chevron-left"></i>
                             </span>
-                            <span class="title flex-center">
+                                <span class="title flex-center">
                                 <span class="post-nav-title-item">DNS重绑定与SSRF绕过</span>
                                 <span class="post-nav-item">Prev posts</span>
                             </span>
-                        </a>
-                    </div>
-                
-                
-                    <div class="article-next">
-                        <a class="next"
-                           rel="next"
-                           href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/"
-                        >
+                            </a>
+                        </div>
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2021/07/20/CSP%E7%AD%96%E7%95%A5%E5%8F%8A%E7%BB%95%E8%BF%87%E6%96%B9%E6%B3%95/"
+                            >
                             <span class="title flex-center">
                                 <span class="post-nav-title-item">CSP策略及绕过方法</span>
                                 <span class="post-nav-item">Next posts</span>
                             </span>
-                            <span class="right arrow-icon flex-center">
+                                <span class="right arrow-icon flex-center">
                               <i class="fas fa-chevron-right"></i>
                             </span>
-                        </a>
-                    </div>
-                
-            </div>
-        
+                            </a>
+                        </div>
+                    
+                </div>
+            
 
-        
-            <div class="comment-container">
-                <div class="comments-container">
-    <div id="comment-anchor"></div>
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
     <div class="comment-area-title">
-        <i class="fas fa-comments">&nbsp;Comments</i>
+        <i class="fas fa-comments"></i>&nbsp;Comments
     </div>
     
-
         
             
+
     <div class="valine-container">
-        <script 
-                src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <script  src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
         <div id="vcomments"></div>
         <script >
-            function loadValine() {
-                new Valine({
-                    el: '#vcomments',
-                    appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
-                    appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
-                    meta: ['nick', 'mail', 'link'],
-                    avatar: 'wavatar',
-                    enableQQ: true,
-                    placeholder: '欢迎吐槽~',
-                    lang: 'en'.toLowerCase()
-                });
+          function loadValine() {
+            new Valine({
+              el: '#vcomments',
+              appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+              appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: '',
+              lang: 'en'.toLowerCase()
+            });
 
-                function getAuthor(language) {
-                    switch (language) {
-                        case 'en':
-                            return 'Author';
-                        case 'zh-CN':
-                            return '博主';
-                        default:
-                            return 'Master';
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author';
+                case 'zh-CN':
+                  return '博主';
+                default:
+                  return 'Master';
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+              if (vcards.length > 0) {
+                let author = 'p0melo';
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick');
+                    const vnick = vnick_dom.innerHTML;
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
                     }
+                  }
                 }
+                clearInterval(getValineDomTimer);
+              } else {
+                clearInterval(getValineDomTimer);
+              }
+            }, 2000);
+          }
 
-                // Add "Author" identify
-                const getValineDomTimer = setInterval(() => {
-                    const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
-                    if (vcards.length > 0) {
-                        let author = 'p0melo';
-
-                        if (author) {
-                            for (let vcard of vcards) {
-                                const vnick_dom = vcard.querySelector('.vhead .vnick');
-                                const vnick = vnick_dom.innerHTML;
-                                if (vnick === author) {
-                                    vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
-                                }
-                            }
-                        }
-                        clearInterval(getValineDomTimer);
-                    } else {
-                        clearInterval(getValineDomTimer);
-                    }
-                }, 2000);
-            }
-
-            if ('false') {
-                const loadValineTimeout = setTimeout(() => {
-                    loadValine();
-                    clearTimeout(loadValineTimeout);
-                }, 1000);
-            } else {
-                window.addEventListener('DOMContentLoaded', loadValine);
-            }
+          if ('false' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine();
+              clearTimeout(loadValineTimeout);
+            }, 1000);
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine);
+          }
         </script>
     </div>
 
@@ -341,6 +398,18 @@
 
         
     
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DFA%E4%B8%8ENFA"><span class="nav-text">DFA与NFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F"><span class="nav-text">贪婪模式与非贪婪模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9E%E6%BA%AF%E6%9C%BA%E5%88%B6%E5%BC%95%E5%8F%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">回溯机制引发的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-text">参考链接</span></a></li></ol>
+    </div>
 </div>
 
             </div>
@@ -355,19 +424,25 @@
         </div>
 
         <div class="page-main-content-bottom">
-            <footer class="footer">
+            
+<footer class="footer">
     <div class="info-container">
         <div class="copyright-info info-item">
             &copy;
             
-            2023&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">p0melo</a>
+                <span>2020</span> -
+            
+            2023
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">p0melo</a>
+            
         </div>
         
-		<!--
         <div class="theme-info info-item">
-            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.3</a>
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.5.2</a>
         </div>
-		-->
+        
         
     </div>
 </footer>
@@ -381,15 +456,16 @@
     <ul class="tools-list">
         <!-- TOC aside toggle -->
         
-            <li class="tools-item page-aside-toggle">
-                <i class="fas fa-outdent"></i>
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
             </li>
         
 
         <!-- go comment -->
         
-            <li class="go-comment">
+            <li class="tools-item flex-center go-to-comments">
                 <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
             </li>
         
     </ul>
@@ -407,10 +483,6 @@
 
         <li class="tools-item tool-font-adjust-minus flex-center">
             <i class="fas fa-search-minus"></i>
-        </li>
-
-        <li class="tools-item tool-expand-width flex-center">
-            <i class="fas fa-arrows-alt-h"></i>
         </li>
 
         <li class="tools-item tool-dark-light-toggle flex-center">
@@ -441,18 +513,8 @@
 
     </div>
 
-    
-        <aside class="page-aside">
-            <div class="post-toc-wrap">
-    <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#DFA%E4%B8%8ENFA"><span class="nav-text">DFA与NFA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F%E4%B8%8E%E9%9D%9E%E8%B4%AA%E5%A9%AA%E6%A8%A1%E5%BC%8F"><span class="nav-text">贪婪模式与非贪婪模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9E%E6%BA%AF%E6%9C%BA%E5%88%B6%E5%BC%95%E5%8F%91%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-text">回溯机制引发的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-text">参考链接</span></a></li></ol>
-    </div>
-</div>
-        </aside>
-    
-
-    <div class="image-viewer-container">
-    <img src="">
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
 </div>
 
 
@@ -473,7 +535,7 @@
                        class="search-input"
                 >
             </div>
-            <span class="popup-btn-close">
+            <span class="close-popup-btn">
                 <i class="fas fa-times"></i>
             </span>
         </div>
@@ -504,10 +566,16 @@
 
 
 
+
+
     
 <script src="/js/local-search.js"></script>
 
 
+
+
+    
+<script src="/js/code-block.js"></script>
 
 
 
@@ -516,12 +584,18 @@
 <div class="post-scripts">
     
         
-<script src="/js/left-side-toggle.js"></script>
+<script src="/js/post-helper.js"></script>
 
+        
+            
 <script src="/js/libs/anime.min.js"></script>
 
+        
+        
+            
 <script src="/js/toc.js"></script>
 
+        
     
 </div>
 
